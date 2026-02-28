@@ -459,14 +459,19 @@ function UniFiPayOption({
   const isActive = method === PaymentMethod.Unifi;
 
   return (
-    <label className={`radio ${isActive ? "active" : ""}`}>
-      <input
-        type="radio"
-        name="payment"
-        checked={isActive}
-        onChange={() => setMethod(PaymentMethod.Unifi)}
-        disabled={disableEdits}
-      />
+    <label
+      className={`radio ${isActive ? "active" : ""}`}
+      style={{ display: "flex", alignItems: "flex-start", gap: 16 }}
+    >
+      <span style={{ paddingTop: 6, lineHeight: 0 }}>
+        <input
+          type="radio"
+          name="payment"
+          checked={isActive}
+          onChange={() => setMethod(PaymentMethod.Unifi)}
+          disabled={disableEdits}
+        />
+      </span>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         <div
