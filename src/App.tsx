@@ -219,7 +219,7 @@ function MarketplaceView({
                 {formatUsd(p.priceUsd)}
               </div>
               <button
-                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99]"
+                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99] cursor-pointer"
                 onClick={() => onBuy(p)}
               >
                 Buy
@@ -373,7 +373,7 @@ function PaymentView({
 
         {!isSuccess ? (
           <button
-            className="mt-4 w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.99]"
+            className="mt-4 w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.99] cursor-pointer"
             onClick={onPay}
             disabled={isPaying}
           >
@@ -392,7 +392,7 @@ function PaymentView({
             </div>
             <div className="mt-3">
               <button
-                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99]"
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] cursor-pointer"
                 onClick={onBack}
               >
                 Back to Marketplace
@@ -649,7 +649,7 @@ function PillSelect<T extends string>({
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={disabled}
-        className={`inline-flex items-center justify-between gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-sm font-extrabold shadow-sm transition active:scale-[0.99] ${
+        className={`inline-flex items-center justify-between gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-sm font-extrabold shadow-sm transition active:scale-[0.99] cursor-pointer ${
           disabled ? "cursor-not-allowed opacity-60" : "hover:bg-slate-50"
         }`}
         style={{ background: selected.pillBg ?? "rgba(255,255,255,0.75)" }}
@@ -684,7 +684,7 @@ function PillSelect<T extends string>({
                   onChange(it.value);
                   close();
                 }}
-                className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm font-extrabold text-slate-900 hover:bg-slate-50 ${
+                className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm font-extrabold text-slate-900 hover:bg-slate-50 cursor-pointer ${
                   active ? "bg-slate-900/5" : ""
                 }
                 }`}
