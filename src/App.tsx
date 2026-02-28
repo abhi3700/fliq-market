@@ -22,6 +22,56 @@ function FooterDivider() {
   return <span className="inline-block h-5 w-px rounded bg-black/25" />;
 }
 
+function SiteFooter() {
+  return (
+    <footer className="border-t border-slate-200 bg-white">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-5 px-4 py-6">
+        <a
+          href="https://www.unifiweb3.com/"
+          target="_blank"
+          rel="noreferrer"
+          className="font-semibold text-[#2563EB] sm:text-base text-sm hover:opacity-80"
+        >
+          Website
+        </a>
+
+        <FooterDivider />
+
+        <a
+          href="https://linkedin.com/company/unifi-web3"
+          target="_blank"
+          rel="noreferrer"
+          className="font-semibold text-[#0A66C2] sm:text-base text-sm hover:opacity-80"
+        >
+          LinkedIn
+        </a>
+
+        <FooterDivider />
+
+        <a
+          href="https://x.com/UniFi495650"
+          target="_blank"
+          rel="noreferrer"
+          className="font-semibold text-black sm:text-base text-sm hover:opacity-80"
+        >
+          X
+        </a>
+
+        <FooterDivider />
+
+        <a
+          href="https://t.me/unifi_channel"
+          target="_blank"
+          rel="noreferrer"
+          className="font-semibold text-[#229ED9] sm:text-base text-sm hover:opacity-80"
+        >
+          Telegram
+        </a>
+      </div>
+    </footer>
+  );
+}
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>("marketplace");
   const [query, setQuery] = useState("");
@@ -109,7 +159,7 @@ export default function App() {
             />
           ) : (
             <button
-              className="rounded-xl border border-slate-200 bg-white sm:px-4 px-3 py-2 sm:text-sm text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 active:scale-[0.99]"
+              className="rounded-xl border border-slate-200 bg-white sm:px-4 px-3 py-2 sm:text-sm text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 active:scale-[0.99] cursor-pointer"
               onClick={backToMarketplace}
             >
               ← Continue shopping
@@ -141,51 +191,7 @@ export default function App() {
         )}
       </main>
 
-      <footer className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-5 px-4 py-6">
-          <a
-            href="https://linkedin.com/company/unifi-web3"
-            target="_blank"
-            rel="noreferrer"
-            className="font-semibold text-[#0A66C2] hover:opacity-80"
-          >
-            LinkedIn
-          </a>
-
-          <FooterDivider />
-
-          <a
-            href="https://x.com/UniFi495650"
-            target="_blank"
-            rel="noreferrer"
-            className="font-semibold text-black hover:opacity-80"
-          >
-            X
-          </a>
-
-          <FooterDivider />
-
-          <a
-            href="https://t.me/unifi_channel"
-            target="_blank"
-            rel="noreferrer"
-            className="font-semibold text-[#229ED9] hover:opacity-80"
-          >
-            Telegram
-          </a>
-
-          <FooterDivider />
-
-          <a
-            href="https://www.unifiweb3.com/"
-            target="_blank"
-            rel="noreferrer"
-            className="font-semibold text-[#2563EB] hover:opacity-80"
-          >
-            Website
-          </a>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
@@ -295,7 +301,7 @@ function PaymentView({
 
         <div className="mt-4 space-y-3">
           <label
-            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 shadow-sm transition ${
+            className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 shadow-sm transition ${
               method === PaymentMethod.Debit
                 ? "border-blue-500 ring-4 ring-blue-50"
                 : "border-slate-200 hover:bg-slate-50"
@@ -317,7 +323,7 @@ function PaymentView({
           </label>
 
           <label
-            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 shadow-sm transition ${
+            className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 shadow-sm transition ${
               method === PaymentMethod.Credit
                 ? "border-blue-500 ring-4 ring-blue-50"
                 : "border-slate-200 hover:bg-slate-50"
@@ -341,7 +347,7 @@ function PaymentView({
           </label>
 
           <label
-            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 shadow-sm transition ${
+            className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 shadow-sm transition ${
               method === PaymentMethod.Upi
                 ? "border-blue-500 ring-4 ring-blue-50"
                 : "border-slate-200 hover:bg-slate-50"
@@ -505,7 +511,7 @@ function UniFiPayOption({
           : "border-slate-200 hover:bg-slate-50"
       }`}
     >
-      <span className="pt-1.5 leading-none">
+      <span className="pt-2.5 leading-none">
         <input
           type="radio"
           name="payment"
