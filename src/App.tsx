@@ -432,19 +432,25 @@ function UniFiPayOption({
         onChange={() => setMethod(PaymentMethod.Unifi)}
         disabled={disableEdits}
       />
-      <div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+        }}
+      >
         <div
           className="radioTitle"
           style={{
             display: "flex",
             alignItems: "center",
-            gap: 3,
+            gap: 4,
           }}
         >
           <span
             style={{
-              width: 18,
-              height: 18,
+              width: 17,
+              height: 17,
               borderRadius: 999,
               background: "#4F46E5",
               display: "inline-flex",
@@ -456,8 +462,8 @@ function UniFiPayOption({
             <img
               src={unifiIcon}
               alt="UniFi"
-              width={18}
-              height={18}
+              width={17}
+              height={17}
               style={{ display: "block" }}
             />
           </span>
