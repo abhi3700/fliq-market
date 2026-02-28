@@ -11,6 +11,20 @@ function calcTax(subtotal: number): number {
   return subtotal * TAX_RATE;
 }
 
+function FooterDivider() {
+  return (
+    <span
+      style={{
+        width: 0.75,
+        height: 20,
+        background: "rgba(0,0,0,0.25)",
+        display: "inline-block",
+        borderRadius: 1,
+      }}
+    />
+  );
+}
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>("marketplace");
   const [query, setQuery] = useState("");
@@ -135,6 +149,8 @@ export default function App() {
             LinkedIn
           </a>
 
+          <FooterDivider />
+
           <a
             href="https://x.com/UniFi495650"
             target="_blank"
@@ -144,6 +160,8 @@ export default function App() {
             X
           </a>
 
+          <FooterDivider />
+
           <a
             href="https://t.me/unifi_channel"
             target="_blank"
@@ -152,6 +170,8 @@ export default function App() {
           >
             Telegram
           </a>
+
+          <FooterDivider />
 
           <a
             href="https://www.unifiweb3.com/"
