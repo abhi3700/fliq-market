@@ -19,17 +19,7 @@ function calcTax(subtotal: number): number {
 }
 
 function FooterDivider() {
-  return (
-    <span
-      style={{
-        width: 0.75,
-        height: 20,
-        background: "rgba(0,0,0,0.25)",
-        display: "inline-block",
-        borderRadius: 1,
-      }}
-    />
-  );
+  return <span className="inline-block h-5 w-px rounded bg-black/25" />;
 }
 
 export default function App() {
@@ -90,38 +80,45 @@ export default function App() {
   }
 
   return (
-    <div className="page">
-      <header className="topbar">
-        <div className="brand">
-          <div className="brandLogo">M</div>
-          <div>
-            <div className="brandTitle">
-              {screen === "marketplace" ? "FliQMarket" : "Checkout"}
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-sm font-extrabold text-white">
+              M
             </div>
-            <div className="brandSub">
-              {screen === "marketplace"
-                ? "Lean marketplace demo"
-                : "Pay securely (demo)"}
+            <div>
+              <div className="text-base font-extrabold tracking-tight">
+                {screen === "marketplace" ? "FliQMarket" : "Checkout"}
+              </div>
+              <div className="sm:text-sm text-[10px] text-slate-500">
+                {screen === "marketplace"
+                  ? "Lean marketplace demo"
+                  : "Pay securely (demo)"}
+              </div>
             </div>
           </div>
-        </div>
 
-        {screen === "marketplace" ? (
-          <input
-            className="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search products…"
-            aria-label="Search products"
-          />
-        ) : (
-          <button className="btnSecondary" onClick={backToMarketplace}>
-            ← Continue shopping
-          </button>
-        )}
+          {screen === "marketplace" ? (
+            <input
+              className="w-full max-w-md rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-300 focus:ring-4 focus:ring-slate-100"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search products…"
+              aria-label="Search products"
+            />
+          ) : (
+            <button
+              className="rounded-xl border border-slate-200 bg-white sm:px-4 px-3 py-2 sm:text-sm text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 active:scale-[0.99]"
+              onClick={backToMarketplace}
+            >
+              ← Continue shopping
+            </button>
+          )}
+        </div>
       </header>
 
-      <main className="container">
+      <main className="mx-auto w-full max-w-6xl px-4 py-6">
         {screen === "marketplace" ? (
           <MarketplaceView products={filtered} onBuy={startCheckout} />
         ) : (
@@ -144,22 +141,13 @@ export default function App() {
         )}
       </main>
 
-      <footer className="footer">
-        <div
-          className="footerLinks"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 20,
-            flexWrap: "wrap",
-          }}
-        >
+      <footer className="border-t border-slate-200 bg-white">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-5 px-4 py-6">
           <a
             href="https://linkedin.com/company/unifi-web3"
             target="_blank"
             rel="noreferrer"
-            style={{ color: "#0A66C2", fontWeight: 500 }}
+            className="font-semibold text-[#0A66C2] hover:opacity-80"
           >
             LinkedIn
           </a>
@@ -170,7 +158,7 @@ export default function App() {
             href="https://x.com/UniFi495650"
             target="_blank"
             rel="noreferrer"
-            style={{ color: "#000000", fontWeight: 500 }}
+            className="font-semibold text-black hover:opacity-80"
           >
             X
           </a>
@@ -181,7 +169,7 @@ export default function App() {
             href="https://t.me/unifi_channel"
             target="_blank"
             rel="noreferrer"
-            style={{ color: "#229ED9", fontWeight: 500 }}
+            className="font-semibold text-[#229ED9] hover:opacity-80"
           >
             Telegram
           </a>
@@ -192,7 +180,7 @@ export default function App() {
             href="https://www.unifiweb3.com/"
             target="_blank"
             rel="noreferrer"
-            style={{ color: "#2563EB", fontWeight: 500 }}
+            className="font-semibold text-[#2563EB] hover:opacity-80"
           >
             Website
           </a>
@@ -210,16 +198,30 @@ function MarketplaceView({
   onBuy: (p: Product) => void;
 }) {
   return (
-    <div className="grid">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
       {products.map((p) => (
-        <div key={p.id} className="card">
-          <img className="cardImg" src={p.imageUrl} alt={p.title} />
-          <div className="cardBody">
-            <div className="cardTitle">{p.title}</div>
-            <div className="cardDesc">{p.description}</div>
-            <div className="cardRow">
-              <div className="price">{formatUsd(p.priceUsd)}</div>
-              <button className="btn" onClick={() => onBuy(p)}>
+        <div
+          key={p.id}
+          className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+        >
+          <img
+            className="h-44 w-full object-cover"
+            src={p.imageUrl}
+            alt={p.title}
+          />
+          <div className="space-y-3 p-4">
+            <div className="text-base font-extrabold text-slate-900">
+              {p.title}
+            </div>
+            <div className="text-sm text-slate-600">{p.description}</div>
+            <div className="flex items-center justify-between">
+              <div className="text-lg font-extrabold">
+                {formatUsd(p.priceUsd)}
+              </div>
+              <button
+                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99]"
+                onClick={() => onBuy(p)}
+              >
                 Buy
               </button>
             </div>
@@ -263,13 +265,18 @@ function PaymentView({
 }) {
   if (!selected || !pricing) {
     return (
-      <div className="panel">
-        <div className="panelTitle">No product selected</div>
-        <div className="muted">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="text-sm font-extrabold tracking-wide text-slate-900">
+          No product selected
+        </div>
+        <div className="mt-2 text-sm text-slate-600">
           Go back to the marketplace and choose a product.
         </div>
-        <div style={{ marginTop: 16 }}>
-          <button className="btn" onClick={onBack}>
+        <div className="mt-4">
+          <button
+            className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99]"
+            onClick={onBack}
+          >
             Back to Marketplace
           </button>
         </div>
@@ -280,13 +287,19 @@ function PaymentView({
   const disableEdits = isPaying || isSuccess;
 
   return (
-    <div className="twoCol">
-      <div className="panel">
-        <div className="panelTitle">Payment method</div>
+    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="text-sm font-extrabold tracking-wide text-slate-900">
+          Payment method
+        </div>
 
-        <div className="radioGroup">
+        <div className="mt-4 space-y-3">
           <label
-            className={`radio ${method === PaymentMethod.Debit ? "active" : ""}`}
+            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 shadow-sm transition ${
+              method === PaymentMethod.Debit
+                ? "border-blue-500 ring-4 ring-blue-50"
+                : "border-slate-200 hover:bg-slate-50"
+            }`}
           >
             <input
               type="radio"
@@ -295,20 +308,20 @@ function PaymentView({
               onChange={() => setMethod(PaymentMethod.Debit)}
               disabled={disableEdits}
             />
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 6,
-              }}
-            >
-              <div className="radioTitle">Debit Card</div>
-              <div className="mutedSmall">Pay using debit card</div>
+            <div className="flex flex-col gap-1">
+              <div className="text-sm font-extrabold text-slate-900">
+                Debit Card
+              </div>
+              <div className="text-xs text-slate-500">Pay using debit card</div>
             </div>
           </label>
 
           <label
-            className={`radio ${method === PaymentMethod.Credit ? "active" : ""}`}
+            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 shadow-sm transition ${
+              method === PaymentMethod.Credit
+                ? "border-blue-500 ring-4 ring-blue-50"
+                : "border-slate-200 hover:bg-slate-50"
+            }`}
           >
             <input
               type="radio"
@@ -317,14 +330,22 @@ function PaymentView({
               onChange={() => setMethod(PaymentMethod.Credit)}
               disabled={disableEdits}
             />
-            <div>
-              <div className="radioTitle">Credit Card</div>
-              <div className="mutedSmall">Pay using credit card</div>
+            <div className="flex flex-col gap-1">
+              <div className="text-sm font-extrabold text-slate-900">
+                Credit Card
+              </div>
+              <div className="text-xs text-slate-500">
+                Pay using credit card
+              </div>
             </div>
           </label>
 
           <label
-            className={`radio ${method === PaymentMethod.Upi ? "active" : ""}`}
+            className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 shadow-sm transition ${
+              method === PaymentMethod.Upi
+                ? "border-blue-500 ring-4 ring-blue-50"
+                : "border-slate-200 hover:bg-slate-50"
+            }`}
           >
             <input
               type="radio"
@@ -333,9 +354,9 @@ function PaymentView({
               onChange={() => setMethod(PaymentMethod.Upi)}
               disabled={disableEdits}
             />
-            <div>
-              <div className="radioTitle">UPI</div>
-              <div className="mutedSmall">Pay using UPI (demo)</div>
+            <div className="flex flex-col gap-1">
+              <div className="text-sm font-extrabold text-slate-900">UPI</div>
+              <div className="text-xs text-slate-500">Pay using UPI (demo)</div>
             </div>
           </label>
 
@@ -351,18 +372,29 @@ function PaymentView({
         </div>
 
         {!isSuccess ? (
-          <button className="btn payBtn" onClick={onPay} disabled={isPaying}>
+          <button
+            className="mt-4 w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.99]"
+            onClick={onPay}
+            disabled={isPaying}
+          >
             {isPaying ? "Processing…" : `Pay ${formatUsd(pricing.total)}`}
           </button>
         ) : (
-          <div className="successCard">
-            <div className="successBadge">✓ Payment successful</div>
-            <div className="successTitle">Your product is on the way.</div>
-            <div className="muted">
+          <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="inline-flex items-center rounded-full bg-emerald-600 px-3 py-1 text-xs font-extrabold text-white">
+              ✓ Payment successful
+            </div>
+            <div className="mt-2 text-base font-extrabold text-slate-900">
+              Your product is on the way.
+            </div>
+            <div className="mt-1 text-sm text-slate-600">
               Order confirmed for <b>{selected.title}</b>.
             </div>
-            <div className="successActions">
-              <button className="btnSecondaryDark" onClick={onBack}>
+            <div className="mt-3">
+              <button
+                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99]"
+                onClick={onBack}
+              >
                 Back to Marketplace
               </button>
             </div>
@@ -370,36 +402,42 @@ function PaymentView({
         )}
       </div>
 
-      <div className="panel">
-        <div className="panelTitle">Order summary</div>
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="text-sm font-extrabold tracking-wide text-slate-900">
+          Order summary
+        </div>
 
-        <div className="summaryItem">
+        <div className="mt-4 flex items-center gap-4">
           <img
-            className="summaryImg"
+            className="h-16 w-16 rounded-xl object-cover"
             src={selected.imageUrl}
             alt={selected.title}
           />
-          <div className="summaryInfo">
-            <div className="summaryTitle">{selected.title}</div>
-            <div className="mutedSmall">
+          <div>
+            <div className="text-sm font-extrabold text-slate-900">
+              {selected.title}
+            </div>
+            <div className="text-xs text-slate-500">
               {formatUsd(selected.priceUsd)} each
             </div>
           </div>
         </div>
 
-        <div className="qtyRow">
-          <div className="mutedSmall">Quantity</div>
-          <div className="qtyControls">
+        <div className="mt-5 flex items-center justify-between">
+          <div className="text-xs font-semibold text-slate-500">Quantity</div>
+          <div className="flex items-center gap-2">
             <button
-              className="qtyBtn"
+              className="h-9 w-9 rounded-xl border border-slate-200 bg-white text-base font-extrabold text-slate-800 shadow-sm hover:bg-slate-50 disabled:opacity-60"
               onClick={() => setQty(Math.max(1, qty - 1))}
               disabled={disableEdits}
             >
               −
             </button>
-            <div className="qtyValue">{qty}</div>
+            <div className="min-w-10 text-center text-sm font-extrabold">
+              {qty}
+            </div>
             <button
-              className="qtyBtn"
+              className="h-9 w-9 rounded-xl border border-slate-200 bg-white text-base font-extrabold text-slate-800 shadow-sm hover:bg-slate-50 disabled:opacity-60"
               onClick={() => setQty(qty + 1)}
               disabled={disableEdits}
             >
@@ -408,30 +446,31 @@ function PaymentView({
           </div>
         </div>
 
-        <div className="breakdown">
-          <div className="row">
-            <div className="muted">Actual price</div>
-            <div>{formatUsd(selected.priceUsd)}</div>
+        <div className="mt-5 space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div className="flex items-center justify-between text-sm">
+            <div className="text-slate-600">Actual price</div>
+            <div className="font-semibold">{formatUsd(selected.priceUsd)}</div>
           </div>
-          <div className="row">
-            <div className="muted">Qty</div>
-            <div>{qty}</div>
+          <div className="flex items-center justify-between text-sm">
+            <div className="text-slate-600">Qty</div>
+            <div className="font-semibold">{qty}</div>
           </div>
-          <div className="row">
-            <div className="muted">Subtotal</div>
-            <div>{formatUsd(pricing.subtotal)}</div>
+          <div className="flex items-center justify-between text-sm">
+            <div className="text-slate-600">Subtotal</div>
+            <div className="font-semibold">{formatUsd(pricing.subtotal)}</div>
           </div>
-          <div className="row">
-            <div className="muted">Tax</div>
-            <div>{formatUsd(pricing.tax)}</div>
+          <div className="flex items-center justify-between text-sm">
+            <div className="text-slate-600">Tax</div>
+            <div className="font-semibold">{formatUsd(pricing.tax)}</div>
           </div>
-          <div className="row total">
+          <div className="my-2 h-px w-full bg-slate-200" />
+          <div className="flex items-center justify-between text-sm font-extrabold">
             <div>Total</div>
             <div>{formatUsd(pricing.total)}</div>
           </div>
         </div>
 
-        <div className="mutedSmall" style={{ marginTop: 12 }}>
+        <div className="mt-3 text-xs text-slate-500">
           Note: Demo flow only (no real gateway).
         </div>
       </div>
@@ -460,10 +499,13 @@ function UniFiPayOption({
 
   return (
     <label
-      className={`radio ${isActive ? "active" : ""}`}
-      style={{ display: "flex", alignItems: "flex-start", gap: 16 }}
+      className={`flex cursor-pointer items-start gap-4 rounded-2xl border p-4 shadow-sm transition ${
+        isActive
+          ? "border-blue-500 ring-4 ring-blue-50"
+          : "border-slate-200 hover:bg-slate-50"
+      }`}
     >
-      <span style={{ paddingTop: 6, lineHeight: 0 }}>
+      <span className="pt-1.5 leading-none">
         <input
           type="radio"
           name="payment"
@@ -473,92 +515,27 @@ function UniFiPayOption({
         />
       </span>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <div
-          className="radioTitle"
-          style={{ display: "flex", alignItems: "center", gap: 6 }}
-        >
-          <span
-            style={{
-              width: 18,
-              height: 18,
-              borderRadius: 999,
-              background: "#4F46E5",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flex: "0 0 auto",
-            }}
-          >
-            <img
-              src={unifiIcon}
-              alt="UniFi"
-              width={18}
-              height={18}
-              style={{ display: "block" }}
-            />
+      <div className="flex flex-col gap-2.5">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-indigo-600">
+            <img src={unifiIcon} alt="UniFi" className="block h-5 w-5" />
           </span>
-          <span
-            style={{
-              fontSize: 18,
-              fontWeight: 800,
-              lineHeight: 1,
-              letterSpacing: 0.2,
-              color: "#321967",
-            }}
-          >
+          <span className="text-lg font-extrabold leading-none tracking-tight text-[#321967]">
             UniFi
           </span>
         </div>
 
-        <div className="mutedSmall">Pay with Stablecoins</div>
+        <div className="text-xs text-slate-500">Pay with Stablecoins</div>
 
         {/* Asset & Network selector (shown like the mock) */}
         <div
-          style={{
-            marginTop: 2,
-            paddingTop: 10,
-            borderTop: "1px solid rgba(0,0,0,0.06)",
-            opacity: isActive ? 1 : 0.75,
-          }}
+          className={`mt-1 border-t border-black/5 pt-3 ${isActive ? "opacity-100" : "opacity-75"}`}
         >
-          <div
-            style={{
-              background: "rgba(255,255,255,0.92)",
-              border: "1px solid rgba(17, 24, 39, 0.12)",
-              borderRadius: 16,
-              padding: "14px 14px",
-              boxShadow: "0 18px 40px rgba(17,24,39,0.10)",
-              width: "100%",
-              maxWidth: 360,
-              boxSizing: "border-box",
-              flex: "0 0 auto",
-              alignSelf: "flex-start",
-            }}
-          >
-            <div
-              style={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: "rgba(17, 24, 39, 0.7)",
-                marginBottom: 8,
-                textAlign: "center",
-                width: "100%",
-              }}
-            >
+          <div className="w-full max-w-90 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-lg">
+            <div className="mb-2 w-full text-center text-xs font-extrabold text-slate-700/80">
               Asset &amp; Network
             </div>
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                flexWrap: "wrap",
-                justifyContent: "center",
-                width: "100%",
-              }}
-            >
+            <div className="flex w-full flex-wrap items-center justify-center gap-3">
               <PillSelect<UnifiAsset>
                 minWidth={112}
                 value={asset}
@@ -591,7 +568,6 @@ function UniFiPayOption({
                   },
                 ]}
               />
-
               <PillSelect<UnifiNetwork>
                 minWidth={132}
                 value={network}
@@ -663,10 +639,9 @@ function PillSelect<T extends string>({
   return (
     <div
       ref={rootRef}
-      style={{ position: "relative", display: "inline-flex" }}
+      className="relative inline-flex outline-none"
       tabIndex={0}
       onBlur={(e) => {
-        // Close only if focus moved outside this root
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) close();
       }}
     >
@@ -674,81 +649,31 @@ function PillSelect<T extends string>({
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={disabled}
-        style={{
-          border: "1px solid rgba(17, 24, 39, 0.14)",
-          borderRadius: 999,
-          padding: "6px 10px",
-          background: selected.pillBg ?? "rgba(255,255,255,0.75)",
-          boxShadow: "0 6px 18px rgba(17,24,39,0.08)",
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 8,
-          cursor: disabled ? "not-allowed" : "pointer",
-          minWidth: Math.min(minWidth, 124),
-          justifyContent: "space-between",
-        }}
+        className={`inline-flex items-center justify-between gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-sm font-extrabold shadow-sm transition active:scale-[0.99] ${
+          disabled ? "cursor-not-allowed opacity-60" : "hover:bg-slate-50"
+        }`}
+        style={{ background: selected.pillBg ?? "rgba(255,255,255,0.75)" }}
       >
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-          {/* Coin icon full circle for selected pill */}
-          <span
-            style={{
-              width: 22,
-              height: 22,
-              borderRadius: 999,
-              background: "transparent",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flex: "0 0 auto",
-              overflow: "hidden",
-            }}
-            aria-hidden="true"
-          >
+        <span className="inline-flex items-center gap-2">
+          <span className="inline-flex h-5.5 w-5.5 flex-none items-center justify-center overflow-hidden rounded-full">
             <img
               src={selected.iconSrc}
               alt={selected.iconAlt}
-              width={22}
-              height={22}
-              style={{
-                display: "block",
-                borderRadius: 999,
-                objectFit: "cover",
-              }}
+              className="block h-5.5 w-5.5 rounded-full object-cover"
             />
           </span>
-          <span style={{ fontWeight: 800, color: "#0F172A" }}>
-            {selected.label}
-          </span>
+          <span className="text-slate-900">{selected.label}</span>
         </span>
-
         <span
           aria-hidden="true"
-          style={{
-            color: "rgba(15, 23, 42, 0.7)",
-            fontWeight: 900,
-            transform: open ? "rotate(180deg)" : "none",
-            transition: "transform 140ms ease",
-          }}
+          className={`font-black text-slate-700 transition-transform ${open ? "rotate-180" : ""}`}
         >
           ▾
         </span>
       </button>
 
       {open ? (
-        <div
-          style={{
-            position: "absolute",
-            top: 40,
-            left: 0,
-            zIndex: 20,
-            width: 160,
-            background: "rgba(255,255,255,0.96)",
-            border: "1px solid rgba(17, 24, 39, 0.14)",
-            borderRadius: 14,
-            boxShadow: "0 18px 40px rgba(17,24,39,0.18)",
-            overflow: "hidden",
-          }}
-        >
+        <div className="absolute left-0 top-10 z-20 w-40 overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-xl">
           {items.map((it) => {
             const active = it.value === value;
             return (
@@ -759,60 +684,23 @@ function PillSelect<T extends string>({
                   onChange(it.value);
                   close();
                 }}
-                style={{
-                  width: "100%",
-                  textAlign: "left",
-                  padding: "10px 10px",
-                  border: "none",
-                  background: active ? "rgba(15, 23, 42, 0.04)" : "transparent",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  gap: 12,
-                  cursor: "pointer",
-                }}
+                className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm font-extrabold text-slate-900 hover:bg-slate-50 ${
+                  active ? "bg-slate-900/5" : ""
+                }
+                }`}
               >
-                <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  {/* Coin icon full circle for dropdown list */}
-                  <span
-                    style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 999,
-                      background: "transparent",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flex: "0 0 auto",
-                      overflow: "hidden",
-                    }}
-                    aria-hidden="true"
-                  >
+                <span className="flex items-center gap-2">
+                  <span className="inline-flex h-5.5 w-5.5 flex-none items-center justify-center overflow-hidden rounded-full">
                     <img
                       src={it.iconSrc}
                       alt={it.iconAlt}
-                      width={22}
-                      height={22}
-                      style={{
-                        display: "block",
-                        borderRadius: 999,
-                        objectFit: "cover",
-                      }}
+                      className="block h-5.5 w-5.5 rounded-full object-cover"
                     />
                   </span>
-                  <span style={{ fontWeight: 900, color: "#0F172A" }}>
-                    {it.label}
-                  </span>
+                  <span>{it.label}</span>
                 </span>
 
-                {active ? (
-                  <span
-                    aria-hidden="true"
-                    style={{ fontWeight: 900, color: "#0F172A" }}
-                  >
-                    ✓
-                  </span>
-                ) : null}
+                {active ? <span aria-hidden="true">✓</span> : null}
               </button>
             );
           })}
