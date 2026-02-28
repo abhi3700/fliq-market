@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { products } from "./data/products";
-import type { PaymentMethod, Product } from "./types";
+import { PaymentMethod, type Product } from "./types";
 import { formatUsd } from "./utils/money";
+import unifiIcon from "./assets/unifi-icon.svg";
 
 type Screen = "marketplace" | "payment";
 
@@ -16,7 +17,7 @@ export default function App() {
   const [selected, setSelected] = useState<Product | null>(null);
 
   const [qty, setQty] = useState<number>(1);
-  const [method, setMethod] = useState<PaymentMethod>("upi");
+  const [method, setMethod] = useState<PaymentMethod>(PaymentMethod.Unifi);
   const [isPaying, setIsPaying] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -41,7 +42,7 @@ export default function App() {
   function startCheckout(p: Product) {
     setSelected(p);
     setQty(1);
-    setMethod("upi");
+    setMethod(PaymentMethod.Unifi);
     setIsPaying(false);
     setIsSuccess(false);
     setScreen("payment");
@@ -241,26 +242,36 @@ function PaymentView({
         <div className="panelTitle">Payment method</div>
 
         <div className="radioGroup">
-          <label className={`radio ${method === "debit" ? "active" : ""}`}>
+          <label
+            className={`radio ${method === PaymentMethod.Debit ? "active" : ""}`}
+          >
             <input
               type="radio"
               name="payment"
-              checked={method === "debit"}
-              onChange={() => setMethod("debit")}
+              checked={method === PaymentMethod.Debit}
+              onChange={() => setMethod(PaymentMethod.Debit)}
               disabled={disableEdits}
             />
-            <div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 6,
+              }}
+            >
               <div className="radioTitle">Debit Card</div>
               <div className="mutedSmall">Pay using debit card</div>
             </div>
           </label>
 
-          <label className={`radio ${method === "credit" ? "active" : ""}`}>
+          <label
+            className={`radio ${method === PaymentMethod.Credit ? "active" : ""}`}
+          >
             <input
               type="radio"
               name="payment"
-              checked={method === "credit"}
-              onChange={() => setMethod("credit")}
+              checked={method === PaymentMethod.Credit}
+              onChange={() => setMethod(PaymentMethod.Credit)}
               disabled={disableEdits}
             />
             <div>
@@ -269,12 +280,14 @@ function PaymentView({
             </div>
           </label>
 
-          <label className={`radio ${method === "upi" ? "active" : ""}`}>
+          <label
+            className={`radio ${method === PaymentMethod.Upi ? "active" : ""}`}
+          >
             <input
               type="radio"
               name="payment"
-              checked={method === "upi"}
-              onChange={() => setMethod("upi")}
+              checked={method === PaymentMethod.Upi}
+              onChange={() => setMethod(PaymentMethod.Upi)}
               disabled={disableEdits}
             />
             <div>
@@ -282,6 +295,12 @@ function PaymentView({
               <div className="mutedSmall">Pay using UPI (demo)</div>
             </div>
           </label>
+
+          <UniFiPayOption
+            method={method}
+            setMethod={setMethod}
+            disableEdits={disableEdits}
+          />
         </div>
 
         {!isSuccess ? (
@@ -370,5 +389,72 @@ function PaymentView({
         </div>
       </div>
     </div>
+  );
+}
+
+function UniFiPayOption({
+  method,
+  setMethod,
+  disableEdits,
+}: {
+  method: PaymentMethod;
+  setMethod: (m: PaymentMethod) => void;
+  disableEdits: boolean;
+}) {
+  return (
+    <label
+      className={`radio ${method === PaymentMethod.Unifi ? "active" : ""}`}
+    >
+      <input
+        type="radio"
+        name="payment"
+        checked={method === PaymentMethod.Unifi}
+        onChange={() => setMethod(PaymentMethod.Unifi)}
+        disabled={disableEdits}
+      />
+      <div>
+        <div
+          className="radioTitle"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 3,
+          }}
+        >
+          <span
+            style={{
+              width: 18,
+              height: 18,
+              borderRadius: 999,
+              background: "#4F46E5",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flex: "0 0 auto",
+            }}
+          >
+            <img
+              src={unifiIcon}
+              alt="UniFi"
+              width={18}
+              height={18}
+              style={{ display: "block" }}
+            />
+          </span>
+          <span
+            style={{
+              fontSize: 18,
+              fontWeight: 800,
+              lineHeight: 1,
+              letterSpacing: 0.2,
+              color: "#321967",
+            }}
+          >
+            UniFi
+          </span>
+        </div>
+        <div className="mutedSmall">Pay with Stablecoins</div>
+      </div>
+    </label>
   );
 }

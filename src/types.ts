@@ -6,4 +6,11 @@ export type Product = {
   imageUrl: string;
 };
 
-export type PaymentMethod = "debit" | "credit" | "upi";
+export const PaymentMethod = {
+  Debit: "debit",
+  Credit: "credit",
+  Upi: "upi",
+  Unifi: "unifi",
+} as const;
+
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod];
