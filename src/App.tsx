@@ -194,14 +194,31 @@ export default function App() {
     setIsPaying(true);
 
     if (method == PaymentMethod.Unifi) {
-      // 1) Build a session id and open the UniFi pay URL in a new tab
-      const sessionId = generateSessionId();
+      // pricing.total is in USD; for the demo we use 2 decimals.
+      // TODO: In production, format based on token decimals.
+      const amountStr = pricing.total.toFixed(2); // "12.34"
+
+      // 1) Build a deterministic session id (sha256) and open the UniFi pay URL in a new tab
+      const timestamp_us = Date.now() * 1000;
+
+      // Keep payload stable; changes in JSON key order / values will change the hash.
+      const payload = JSON.stringify({
+        chain: unifiNetwork,
+        coin: unifiAsset,
+        to_address: "0x000000000000000000000000000000000000dEaD", // demo address
+        amount: amountStr,
+      });
+
+      const sessionId = await generateSessionId({
+        merchant_id: "demo_merchant",
+        user_id: "demo_user",
+        payload,
+        seed: "demo_seed",
+        timestamp_us,
+      });
+
       setUnifiSessionId(sessionId);
       unifiCheckCountRef.current = 0;
-
-      // pricing.total is in USD; for the demo we use 2 decimals.
-      // In production, format based on token decimals.
-      const amountStr = pricing.total.toFixed(2);
 
       const payUrl = create_pay_url({
         chain: unifiNetwork,
