@@ -238,3 +238,86 @@ function PillSelect<T extends string>({
     </div>
   );
 }
+
+function formatMmSs(totalSeconds: number): string {
+  const m = Math.floor(totalSeconds / 60);
+  const s = totalSeconds % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+export function UnifiWaitDialog({
+  open,
+  secondsLeft,
+  statusText,
+  onCheckStatus,
+  onDone,
+  onClose,
+}: {
+  open: boolean;
+  secondsLeft: number;
+  statusText: string;
+  onCheckStatus: () => void;
+  onDone: () => void;
+  onClose: () => void;
+}) {
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div
+        className="absolute inset-0 bg-black/40"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+
+      <div className="relative w-[92%] max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="text-sm font-extrabold tracking-wide text-slate-900">
+              Waiting for payment
+            </div>
+            <div className="mt-1 text-xs text-slate-500">
+              Timer:{" "}
+              <span className="font-semibold">{formatMmSs(secondsLeft)}</span>
+            </div>
+          </div>
+
+          <button
+            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50"
+            onClick={onClose}
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <div className="text-sm font-bold text-slate-900">{statusText}</div>
+          <div className="mt-1 text-xs text-slate-500">
+            You can keep the payment tab open, then come back here to check the
+            status.
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-col gap-2">
+          <button
+            className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99]"
+            onClick={onCheckStatus}
+          >
+            Check status
+          </button>
+
+          <button
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99]"
+            onClick={onDone}
+          >
+            Done!
+          </button>
+        </div>
+
+        <div className="mt-3 text-[11px] text-slate-500">
+          Demo behavior: after 3 status checks, we auto-confirm as paid.
+        </div>
+      </div>
+    </div>
+  );
+}

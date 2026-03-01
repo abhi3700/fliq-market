@@ -1,9 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { products } from "./data/products";
 import { PaymentMethod, type Product } from "./types";
 import { formatUsd } from "./utils/money";
-import { UniFiPayOption } from "./lib/unifi/widget";
+import { UniFiPayOption, UnifiWaitDialog } from "./lib/unifi/widget";
 import { UnifiAsset, UnifiNetwork } from "./lib/unifi/types";
+import {
+  create_pay_url,
+  dummyCheckPaymentStatus,
+  generateSessionId,
+} from "./lib/unifi/utils";
 
 type Screen = "marketplace" | "payment";
 
@@ -78,6 +83,50 @@ export default function App() {
   const [isPaying, setIsPaying] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const [unifiDialogOpen, setUnifiDialogOpen] = useState(false);
+  const [unifiSecondsLeft, setUnifiSecondsLeft] = useState<number>(15 * 60);
+  const [unifiSessionId, setUnifiSessionId] = useState<string | null>(null);
+  const [unifiStatusText, setUnifiStatusText] = useState<string>(
+    "Waiting for payment…",
+  );
+
+  // Dummy status simulator: after a few checks, we mark as paid.
+  const unifiCheckCountRef = useRef(0);
+
+  async function onUnifiCheckStatus() {
+    if (!unifiSessionId) return;
+
+    setUnifiStatusText("Checking status…");
+    const s = await dummyCheckPaymentStatus(unifiSessionId, unifiCheckCountRef);
+
+    if (s === "paid") {
+      setUnifiStatusText("Payment confirmed ✅");
+      setUnifiDialogOpen(false);
+      setIsPaying(false);
+      setIsSuccess(true);
+      return;
+    }
+
+    if (s === "failed") {
+      setUnifiStatusText("Payment failed. Please try again.");
+      return;
+    }
+
+    setUnifiStatusText("Still waiting for payment…");
+  }
+
+  async function onUnifiDone() {
+    // For now, Done behaves the same as Check status.
+    await onUnifiCheckStatus();
+  }
+
+  function closeUnifiDialog() {
+    setUnifiDialogOpen(false);
+    setIsPaying(false);
+    setUnifiStatusText("Waiting for payment…");
+    unifiCheckCountRef.current = 0;
+  }
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return products;
@@ -104,6 +153,10 @@ export default function App() {
     setUnifiNetwork("Ethereum");
     setIsPaying(false);
     setIsSuccess(false);
+    setUnifiDialogOpen(false);
+    setUnifiSessionId(null);
+    setUnifiStatusText("Waiting for payment…");
+    unifiCheckCountRef.current = 0;
     setScreen("payment");
   }
 
@@ -113,12 +166,62 @@ export default function App() {
     // We'll keep selected so user can go back & checkout again quickly if desired.
   }
 
+  useEffect(() => {
+    if (!unifiDialogOpen) return;
+
+    // Reset timer whenever dialog opens
+    setUnifiSecondsLeft(15 * 60);
+
+    const id = window.setInterval(() => {
+      setUnifiSecondsLeft((s) => {
+        if (s <= 1) {
+          window.clearInterval(id);
+          // Auto-close after 15 mins
+          closeUnifiDialog();
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unifiDialogOpen]);
+
   async function payNow() {
     if (!selected || !pricing) return;
 
     setIsPaying(true);
-    // fake payment
-    await new Promise((r) => setTimeout(r, 900));
+
+    if (method == PaymentMethod.Unifi) {
+      // 1) Build a session id and open the UniFi pay URL in a new tab
+      const sessionId = generateSessionId();
+      setUnifiSessionId(sessionId);
+      unifiCheckCountRef.current = 0;
+
+      // pricing.total is in USD; for the demo we use 2 decimals.
+      // In production, format based on token decimals.
+      const amountStr = pricing.total.toFixed(2);
+
+      const payUrl = create_pay_url({
+        chain: unifiNetwork,
+        coin: unifiAsset,
+        to_address: "0x000000000000000000000000000000000000dEaD", // demo address
+        amount: amountStr,
+        session_id: sessionId,
+      });
+
+      window.open(payUrl, "_blank", "noopener,noreferrer");
+
+      // 2) Show a dialog waiting for payment (auto closes after 15 mins)
+      setUnifiStatusText("Waiting for payment…");
+      setUnifiDialogOpen(true);
+      return; // Don't mark success yet; we do it after status becomes "paid"
+    } else {
+      // fake payment
+      await new Promise((r) => setTimeout(r, 900));
+    }
+    // At this point, we are in the non-UniFi path (the UniFi branch returns early).
     setIsPaying(false);
     setIsSuccess(true);
   }
@@ -184,6 +287,15 @@ export default function App() {
           />
         )}
       </main>
+
+      <UnifiWaitDialog
+        open={unifiDialogOpen}
+        secondsLeft={unifiSecondsLeft}
+        statusText={unifiStatusText}
+        onCheckStatus={onUnifiCheckStatus}
+        onDone={onUnifiDone}
+        onClose={closeUnifiDialog}
+      />
 
       <SiteFooter />
     </div>
