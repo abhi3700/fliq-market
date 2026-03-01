@@ -537,8 +537,8 @@ function UniFiPayOption({
         <div
           className={`mt-1 border-t border-black/5 pt-3 ${isActive ? "opacity-100" : "opacity-75"}`}
         >
-          <div className="w-full max-w-90 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-lg">
-            <div className="mb-2 w-full text-center text-xs font-extrabold text-slate-700/80">
+          <div className="w-full max-w-90 rounded-2xl border border-slate-200 bg-white/90 px-3 py-2 shadow-xs">
+            <div className="mb-2 w-full text-center sm:text-[11px] text-[10px] font-extrabold text-slate-700/80">
               Asset &amp; Network
             </div>
             <div className="flex w-full flex-wrap items-center justify-center gap-3">
@@ -655,20 +655,22 @@ function PillSelect<T extends string>({
         type="button"
         onClick={() => setOpen((v) => !v)}
         disabled={disabled}
-        className={`inline-flex items-center justify-between gap-2 rounded-full border border-slate-200 px-3 py-1.5 text-sm font-extrabold shadow-sm transition active:scale-[0.99] cursor-pointer ${
+        className={`inline-flex items-center justify-between gap-2 rounded-full border border-slate-200 sm:px-2 sm:py-1 px-2 py-1 text-sm font-extrabold shadow-sm transition active:scale-[0.99] cursor-pointer ${
           disabled ? "cursor-not-allowed opacity-60" : "hover:bg-slate-50"
         }`}
         style={{ background: selected.pillBg ?? "rgba(255,255,255,0.75)" }}
       >
         <span className="inline-flex items-center gap-2">
-          <span className="inline-flex h-5.5 w-5.5 flex-none items-center justify-center overflow-hidden rounded-full">
+          <span className="inline-flex sm:h-5.5 sm:w-5.5 h-4 w-4 flex-none items-center justify-center overflow-hidden rounded-full">
             <img
               src={selected.iconSrc}
               alt={selected.iconAlt}
-              className="block h-5.5 w-5.5 rounded-full object-cover"
+              className="block sm:h-5 sm:w-5 h-4 w-4 rounded-full object-cover"
             />
           </span>
-          <span className="text-slate-900">{selected.label}</span>
+          <span className="text-slate-900 sm:text-sm text-xs">
+            {selected.label}
+          </span>
         </span>
         <span
           aria-hidden="true"
@@ -696,14 +698,14 @@ function PillSelect<T extends string>({
                 }`}
               >
                 <span className="flex items-center gap-2">
-                  <span className="inline-flex h-5.5 w-5.5 flex-none items-center justify-center overflow-hidden rounded-full">
+                  <span className="inline-flex sm:h-5.5 sm:w-5.5 h-4 w-4 flex-none items-center justify-center overflow-hidden rounded-full">
                     <img
                       src={it.iconSrc}
                       alt={it.iconAlt}
-                      className="block h-5.5 w-5.5 rounded-full object-cover"
+                      className="block sm:h-5.5 sm:w-5.5 h-4 w-4 rounded-full object-cover"
                     />
                   </span>
-                  <span>{it.label}</span>
+                  <span className="sm:text-sm text-xs">{it.label}</span>
                 </span>
 
                 {active ? <span aria-hidden="true">✓</span> : null}
