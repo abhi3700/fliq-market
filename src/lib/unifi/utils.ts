@@ -1,9 +1,5 @@
 import type { UnifiAsset, UnifiNetwork } from "./types";
-
-export const WEB_APP_BASE_URL = "https://unifiweb3.pages.dev/";
-// export const WEB_APP_BASE_URL = "http://0.0.0.0:3334";
-// export const WEB_APP_BASE_URL = "http://localhost:3334";
-// export const WEB_APP_BASE_URL = "https://unifiweb3.pages.dev";
+import { UNIFI_WEB_APP_BASE_URL } from "./constants";
 
 export type CreatePayUrlParams = {
   chain: UnifiNetwork;
@@ -30,7 +26,7 @@ export function create_pay_url(params: CreatePayUrlParams): string {
   }
 
   const path = "/" + parts.join("/");
-  return new URL(path, WEB_APP_BASE_URL).toString();
+  return new URL(path, UNIFI_WEB_APP_BASE_URL).toString();
 }
 
 /**
@@ -97,10 +93,6 @@ export async function generateSessionId(input: {
   return hashHex;
 }
 
-export const UNIFI_API_BASE_URL = "/api";
-// export const UNIFI_API_BASE_URL = "http://0.0.0.0:3333";
-// export const UNIFI_API_BASE_URL = "http://0.0.0.0:3333";
-
 type GetPaymentSessionStatusResponse = {
   status?: string;
   data?: string; // empty string => still pending; non-empty => receipt_id
@@ -119,25 +111,35 @@ export async function checkPaymentStatus(
     apiKey?: string;
   },
 ): Promise<"pending" | "paid" | "failed"> {
-  const apiBaseUrl = opts?.apiBaseUrl ?? UNIFI_API_BASE_URL;
+  // Default to same-origin proxy (Cloudflare Pages Function in prod, Vite dev-proxy in dev).
+  const apiBaseUrl = opts?.apiBaseUrl ?? "/api";
 
   const path = `/payment/merchant/session/${encodeURIComponent(sessionId)}`;
 
   const url = apiBaseUrl.startsWith("/")
-    ? `${apiBaseUrl}${path}` // "/api" + "/payment/.."
+    ? `${apiBaseUrl}${path}` // "/api" + "/payment/..."
     : new URL(path, apiBaseUrl).toString(); // absolute origin
 
+  // If we're calling same-origin (relative /api), the proxy/function will inject the API key.
+  const usesProxy = apiBaseUrl.startsWith("/");
+
   try {
-    if (!opts?.apiKey) {
+    if (!usesProxy && !opts?.apiKey) {
       throw new Error("Missing UniFi API Key");
+    }
+
+    const headers: Record<string, string> = {
+      Accept: "application/json",
+    };
+
+    // Only attach Authorization when calling the UniFi API directly.
+    if (!usesProxy && opts?.apiKey) {
+      headers.Authorization = `Bearer ${opts.apiKey}`;
     }
 
     const res = await fetch(url, {
       method: "GET",
-      headers: {
-        Authorization: `Bearer ${opts.apiKey}`,
-        Accept: "application/json",
-      },
+      headers,
     });
 
     if (!res.ok) {

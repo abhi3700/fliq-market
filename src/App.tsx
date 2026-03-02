@@ -12,18 +12,6 @@ import {
 
 type Screen = "marketplace" | "payment";
 
-// NOTE (Vite):
-// By default, only env vars prefixed with VITE_ are exposed to the browser.
-// Prefer `VITE_UNIFI_API_KEY`.
-// If you configured Vite `envPrefix` to include `UNIFI_`, then `UNIFI_API_KEY` will also work.
-const env = import.meta.env as unknown as {
-  UNIFI_API_KEY?: string;
-  VITE_UNIFI_API_KEY?: string;
-};
-
-const UNIFI_API_KEY: string | undefined =
-  env.UNIFI_API_KEY ?? env.VITE_UNIFI_API_KEY;
-
 function calcTax(subtotal: number): number {
   const TAX_RATE = 0.0825; // 8.25% demo
   return subtotal * TAX_RATE;
@@ -110,14 +98,20 @@ export default function App() {
     if (!unifiSessionId) return;
 
     setUnifiStatusText("Checking status…");
-    if (!UNIFI_API_KEY) {
-      setUnifiStatusText("Missing UNIFI_API_KEY in .env");
-      return;
-    }
-
+    // In production we call via same-origin /api proxy (Cloudflare Function injects the key).
+    // In dev, you can optionally call direct with a key, but default is still /api.
     const s = await checkPaymentStatus(unifiSessionId, {
-      apiKey: UNIFI_API_KEY,
+      apiBaseUrl: "/api",
+      apiKey: import.meta.env.DEV
+        ? (import.meta.env.VITE_UNIFI_API_KEY as string | undefined)
+        : undefined,
     });
+
+    if (import.meta.env.DEV && !import.meta.env.VITE_UNIFI_API_KEY) {
+      // Not fatal if you're using the /api proxy in dev too, but helpful for direct mode.
+      // You can ignore this message if /api is working.
+      // (Keeping it as status text only when we're failing.)
+    }
 
     if (s === "paid") {
       setUnifiStatusText("Payment confirmed ✅");
