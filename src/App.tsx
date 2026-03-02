@@ -100,7 +100,7 @@ export default function App() {
     setUnifiStatusText("Checking status…");
     // In production we call via same-origin /api proxy (Cloudflare Function injects the key).
     // In dev, you can optionally call direct with a key, but default is still /api.
-    const s = await checkPaymentStatus(unifiSessionId, {
+    const r = await checkPaymentStatus(unifiSessionId, {
       apiBaseUrl: "/api",
       apiKey: import.meta.env.DEV
         ? (import.meta.env.VITE_UNIFI_API_KEY as string | undefined)
@@ -113,7 +113,7 @@ export default function App() {
       // (Keeping it as status text only when we're failing.)
     }
 
-    if (s === "paid") {
+    if (r.state === "paid") {
       setUnifiStatusText("Payment confirmed ✅");
       setUnifiDialogOpen(false);
       setIsPaying(false);
@@ -121,8 +121,8 @@ export default function App() {
       return;
     }
 
-    if (s === "failed") {
-      setUnifiStatusText("Payment failed. Please try again.");
+    if (r.state === "failed") {
+      setUnifiStatusText(r.message || "Payment failed. Please try again.");
       return;
     }
 

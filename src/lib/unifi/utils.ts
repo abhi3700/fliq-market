@@ -110,7 +110,11 @@ export async function checkPaymentStatus(
     apiBaseUrl?: string;
     apiKey?: string;
   },
-): Promise<"pending" | "paid" | "failed"> {
+): Promise<
+  | { state: "pending" }
+  | { state: "paid"; receiptId: string }
+  | { state: "failed"; message: string }
+> {
   // Default to same-origin proxy (Cloudflare Pages Function in prod, Vite dev-proxy in dev).
   const apiBaseUrl = opts?.apiBaseUrl ?? "/api";
 
@@ -143,17 +147,42 @@ export async function checkPaymentStatus(
     });
 
     if (!res.ok) {
-      return "failed";
+      // Backend might return plain text (e.g. "Invalid API Key...") or JSON.
+      const contentType = res.headers.get("content-type") ?? "";
+      let message = `Request failed (${res.status})`;
+
+      try {
+        if (contentType.includes("application/json")) {
+          const j: unknown = await res.json();
+
+          // Try to extract a useful message from common error shapes.
+          if (j && typeof j === "object") {
+            const obj = j as Record<string, unknown>;
+            const raw = obj.message ?? obj.error ?? obj.detail;
+            const s = typeof raw === "string" ? raw.trim() : "";
+            if (s) message = s;
+          }
+        } else {
+          const t = (await res.text()).trim();
+          if (t) message = t;
+        }
+      } catch {
+        // ignore parse errors
+      }
+
+      return { state: "failed", message };
     }
 
     const json = (await res.json()) as GetPaymentSessionStatusResponse;
     const receiptId = (json?.data ?? "").trim();
 
     // Per backend contract: empty string => still pending
-    if (!receiptId) return "pending";
+    if (!receiptId) return { state: "pending" };
 
-    return "paid";
-  } catch {
-    return "failed";
+    return { state: "paid", receiptId };
+  } catch (e) {
+    const message =
+      e instanceof Error ? e.message : "Network error while checking status";
+    return { state: "failed", message };
   }
 }

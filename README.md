@@ -68,6 +68,12 @@ npm run build
 npx wrangler pages dev dist --port 8788
 ```
 
+OR
+
+```sh
+./local.sh
+```
+
 ### Production
 
 > [!CAUTION]
