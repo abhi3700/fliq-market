@@ -250,16 +250,41 @@ export function UnifiWaitDialog({
   secondsLeft,
   statusText,
   onCheckStatus,
-  onDone,
+  // onDone,
   onClose,
 }: {
   open: boolean;
   secondsLeft: number;
   statusText: string;
-  onCheckStatus: () => void;
-  onDone: () => void;
+  onCheckStatus: () => Promise<void>;
+  onDone: () => Promise<void>;
   onClose: () => void;
 }) {
+  const [loadingAction, setLoadingAction] = useState<"check" | "done" | null>(
+    null,
+  );
+
+  const isLoading = loadingAction !== null;
+
+  async function handleCheck() {
+    if (isLoading) return;
+    try {
+      setLoadingAction("check");
+      await onCheckStatus();
+    } finally {
+      setLoadingAction(null);
+    }
+  }
+
+  // async function handleDone() {
+  //   if (isLoading) return;
+  //   try {
+  //     setLoadingAction("done");
+  //     await onDone();
+  //   } finally {
+  //     setLoadingAction(null);
+  //   }
+  // }
   if (!open) return null;
 
   return (
@@ -283,7 +308,7 @@ export function UnifiWaitDialog({
           </div>
 
           <button
-            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50"
+            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 cursor-pointer"
             onClick={onClose}
           >
             Close
@@ -300,18 +325,68 @@ export function UnifiWaitDialog({
 
         <div className="mt-4 flex flex-col gap-2">
           <button
-            className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99]"
-            onClick={onCheckStatus}
+            className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70 active:scale-[0.99] cursor-pointer"
+            onClick={handleCheck}
+            disabled={isLoading}
           >
-            Check status
+            <span className="inline-flex items-center justify-center gap-2">
+              {loadingAction === "check" ? (
+                <svg
+                  className="h-4 w-4 animate-spin"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-90"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"
+                  />
+                </svg>
+              ) : null}
+              <span>{loadingAction === "check" ? "Checking…" : "Done!"}</span>
+            </span>
           </button>
 
-          <button
-            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99]"
-            onClick={onDone}
+          {/* <button
+            className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-extrabold text-slate-800 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70 active:scale-[0.99] cursor-pointer"
+            onClick={handleDone}
+            disabled={isLoading}
           >
-            Done!
-          </button>
+            <span className="inline-flex items-center justify-center gap-2">
+              {loadingAction === "done" ? (
+                <svg
+                  className="h-4 w-4 animate-spin"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                  />
+                  <path
+                    className="opacity-90"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"
+                  />
+                </svg>
+              ) : null}
+              <span>{loadingAction === "done" ? "Checking…" : "Done!"}</span>
+            </span>
+          </button> */}
         </div>
       </div>
     </div>
