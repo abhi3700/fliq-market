@@ -2,6 +2,10 @@
 
 🛒 A lightweight marketplace demo showcasing **[UniFi](https://www.unifiweb3.com/)** as a seamless payment option — alongside 💳 Debit Card, 💳 Credit Card, and 🇮🇳 UPI — within a modern payment gateway.
 
+<p align="left">
+    <img src="./res/checkout_page.png" alt="Checkout Page" width="1000" height="">
+</p>
+
 ## Merchant
 
 ### Get your API Key
@@ -75,7 +79,7 @@ npx wrangler pages dev dist --port 8788
 Steps:
 
 1. Set in “Variables and Secrets” section in your cloudflare project (Workers & Pages).
-2. then
+2. then:
 
 ```sh
 # 1. Build the project.
