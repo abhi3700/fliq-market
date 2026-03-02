@@ -1,73 +1,35 @@
-# React + TypeScript + Vite
+# FliQ Market
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple marketplace using [UniFi](https://www.unifiweb3.com/) pay option (alongside Debit, Credit, UPI, ..) in its payment gateway.
 
-Currently, two official plugins are available:
+## Merchant
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+In order to be a merchant, you have to [signup](https://unifiweb3.pages.dev/auth/signup) on [UniFi's web app](https://unifiweb3.pages.dev/home).
 
-## React Compiler
+You can signup using either:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Email
+- Web3 wallet (Metamask).
 
-## Expanding the ESLint configuration
+And then, you need to create API key following this [doc](https://github.com/abhi3700/unifi-dev-kit/blob/main/api-http/README.md).
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Once you have your API Key,
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- <u>Development</u>: you can add as env variable (for testing) & run locally. But this is unsafe in production.
+![](res/merchant_opt_1.png)
+- <u>Production</u>: you can spin-up a Frontend proxy server allowing your merchant site to make UniFi API calls via FE Proxy server.
+![](res/merchant_opt_2.png)
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Run
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Setup needs to be done via `$ npm install`.
+
+### Local
+
+```sh
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Production
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Try the marketplace: <https://fliqm.pages.dev/>
