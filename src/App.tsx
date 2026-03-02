@@ -6,11 +6,23 @@ import { UniFiPayOption, UnifiWaitDialog } from "./lib/unifi/widget";
 import { UnifiAsset, UnifiNetwork } from "./lib/unifi/types";
 import {
   create_pay_url,
-  dummyCheckPaymentStatus,
+  checkPaymentStatus,
   generateSessionId,
 } from "./lib/unifi/utils";
 
 type Screen = "marketplace" | "payment";
+
+// NOTE (Vite):
+// By default, only env vars prefixed with VITE_ are exposed to the browser.
+// Prefer `VITE_UNIFI_API_KEY`.
+// If you configured Vite `envPrefix` to include `UNIFI_`, then `UNIFI_API_KEY` will also work.
+const env = import.meta.env as unknown as {
+  UNIFI_API_KEY?: string;
+  VITE_UNIFI_API_KEY?: string;
+};
+
+const UNIFI_API_KEY: string | undefined =
+  env.UNIFI_API_KEY ?? env.VITE_UNIFI_API_KEY;
 
 function calcTax(subtotal: number): number {
   const TAX_RATE = 0.0825; // 8.25% demo
@@ -91,13 +103,21 @@ export default function App() {
   );
 
   // Dummy status simulator: after a few checks, we mark as paid.
+  // TODO: can we remove this?
   const unifiCheckCountRef = useRef(0);
 
   async function onUnifiCheckStatus() {
     if (!unifiSessionId) return;
 
     setUnifiStatusText("Checking status…");
-    const s = await dummyCheckPaymentStatus(unifiSessionId, unifiCheckCountRef);
+    if (!UNIFI_API_KEY) {
+      setUnifiStatusText("Missing UNIFI_API_KEY in .env");
+      return;
+    }
+
+    const s = await checkPaymentStatus(unifiSessionId, {
+      apiKey: UNIFI_API_KEY,
+    });
 
     if (s === "paid") {
       setUnifiStatusText("Payment confirmed ✅");

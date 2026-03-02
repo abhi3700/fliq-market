@@ -313,10 +313,6 @@ export function UnifiWaitDialog({
             Done!
           </button>
         </div>
-
-        <div className="mt-3 text-[11px] text-slate-500">
-          Demo behavior: after 3 status checks, we auto-confirm as paid.
-        </div>
       </div>
     </div>
   );

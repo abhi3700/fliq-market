@@ -1,6 +1,8 @@
 import type { UnifiAsset, UnifiNetwork } from "./types";
 
-export const WEB_APP_BASE_URL = "http://0.0.0.0:3334";
+export const WEB_APP_BASE_URL = "https://unifiweb3.pages.dev/";
+// export const WEB_APP_BASE_URL = "http://0.0.0.0:3334";
+// export const WEB_APP_BASE_URL = "http://localhost:3334";
 // export const WEB_APP_BASE_URL = "https://unifiweb3.pages.dev";
 
 export type CreatePayUrlParams = {
@@ -95,17 +97,61 @@ export async function generateSessionId(input: {
   return hashHex;
 }
 
-export async function dummyCheckPaymentStatus(
-  _sessionId: string,
-  checkCountRef: { current: number },
+export const UNIFI_API_BASE_URL = "/api";
+// export const UNIFI_API_BASE_URL = "http://0.0.0.0:3333";
+// export const UNIFI_API_BASE_URL = "http://0.0.0.0:3333";
+
+type GetPaymentSessionStatusResponse = {
+  status?: string;
+  data?: string; // empty string => still pending; non-empty => receipt_id
+};
+
+/**
+ * Calls UniFi API server to fetch payment session status.
+ *
+ * Rust handler returns:
+ * { status: "200 OK", data: "" | "<receipt_id>" }
+ */
+export async function checkPaymentStatus(
+  sessionId: string,
+  opts?: {
+    apiBaseUrl?: string;
+    apiKey?: string;
+  },
 ): Promise<"pending" | "paid" | "failed"> {
-  // Simulate an async API call
-  await new Promise((r) => setTimeout(r, 500));
+  const apiBaseUrl = opts?.apiBaseUrl ?? UNIFI_API_BASE_URL;
 
-  checkCountRef.current += 1;
+  const path = `/payment/merchant/session/${encodeURIComponent(sessionId)}`;
 
-  // After 3 checks we treat it as paid (demo behavior)
-  if (checkCountRef.current >= 3) return "paid";
+  const url = apiBaseUrl.startsWith("/")
+    ? `${apiBaseUrl}${path}` // "/api" + "/payment/.."
+    : new URL(path, apiBaseUrl).toString(); // absolute origin
 
-  return "pending";
+  try {
+    if (!opts?.apiKey) {
+      throw new Error("Missing UniFi API Key");
+    }
+
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${opts.apiKey}`,
+        Accept: "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      return "failed";
+    }
+
+    const json = (await res.json()) as GetPaymentSessionStatusResponse;
+    const receiptId = (json?.data ?? "").trim();
+
+    // Per backend contract: empty string => still pending
+    if (!receiptId) return "pending";
+
+    return "paid";
+  } catch {
+    return "failed";
+  }
 }
