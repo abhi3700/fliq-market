@@ -6,6 +6,7 @@ import { UniFiPayOption, UnifiWaitDialog } from "./lib/unifi/widget";
 import { UnifiAsset, UnifiNetwork } from "./lib/unifi/types";
 import {
   create_pay_url,
+  create_pay_receipt_url,
   checkPaymentStatus,
   generateSessionId,
 } from "./lib/unifi/utils";
@@ -82,6 +83,7 @@ export default function App() {
   const [unifiNetwork, setUnifiNetwork] = useState<UnifiNetwork>("Ethereum");
   const [isPaying, setIsPaying] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [receiptId, setReceiptId] = useState<string | null>(null);
 
   const [unifiDialogOpen, setUnifiDialogOpen] = useState(false);
   const [unifiSecondsLeft, setUnifiSecondsLeft] = useState<number>(15 * 60);
@@ -114,6 +116,7 @@ export default function App() {
     }
 
     if (r.state === "paid") {
+      setReceiptId(r.receiptId);
       setUnifiStatusText("Payment confirmed ✅");
       setUnifiDialogOpen(false);
       setIsPaying(false);
@@ -135,6 +138,7 @@ export default function App() {
   }
 
   function closeUnifiDialog() {
+    setReceiptId(null);
     setUnifiDialogOpen(false);
     setIsPaying(false);
     setUnifiStatusText("Waiting for payment…");
@@ -167,6 +171,7 @@ export default function App() {
     setUnifiNetwork("Ethereum");
     setIsPaying(false);
     setIsSuccess(false);
+    setReceiptId(null);
     setUnifiDialogOpen(false);
     setUnifiSessionId(null);
     setUnifiStatusText("Waiting for payment…");
@@ -313,6 +318,7 @@ export default function App() {
             pricing={pricing}
             isPaying={isPaying}
             isSuccess={isSuccess}
+            receiptId={receiptId}
             onPay={payNow}
             onBack={backToMarketplace}
           />
@@ -388,6 +394,7 @@ function PaymentView({
   pricing,
   isPaying,
   isSuccess,
+  receiptId,
   onPay,
   onBack,
 }: {
@@ -403,6 +410,7 @@ function PaymentView({
   pricing: { subtotal: number; tax: number; total: number } | null;
   isPaying: boolean;
   isSuccess: boolean;
+  receiptId: string | null;
   onPay: () => void;
   onBack: () => void;
 }) {
@@ -428,6 +436,7 @@ function PaymentView({
   }
 
   const disableEdits = isPaying || isSuccess;
+  const receiptUrl = receiptId ? create_pay_receipt_url(receiptId) : null;
 
   return (
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
@@ -533,6 +542,23 @@ function PaymentView({
             <div className="mt-1 text-sm text-slate-600">
               Order confirmed for <b>{selected.title}</b>.
             </div>
+            {receiptUrl ? (
+              <div className="mt-3">
+                <a
+                  className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99]"
+                  href={receiptUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  View receipt
+                </a>
+                // CLEANUP:
+                {/* <div className="mt-2 break-all rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs text-slate-600">
+                  {receiptUrl}
+                </div> */}
+              </div>
+            ) : null}
+
             <div className="mt-3">
               <button
                 className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] cursor-pointer"

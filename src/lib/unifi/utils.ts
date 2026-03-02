@@ -29,6 +29,13 @@ export function create_pay_url(params: CreatePayUrlParams): string {
   return new URL(path, UNIFI_WEB_APP_BASE_URL).toString();
 }
 
+export function create_pay_receipt_url(receipt_id: string): string {
+  const parts = ["payment/receipt", encodeURIComponent(receipt_id)];
+
+  const path = "/" + parts.join("/");
+  return new URL(path, UNIFI_WEB_APP_BASE_URL).toString();
+}
+
 /**
  * Generate a deterministic session id (hex SHA-256) for a payment attempt.
  *
