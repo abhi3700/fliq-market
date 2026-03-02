@@ -422,23 +422,6 @@ export function UnifiWaitDialog({
                                 </button>
                             </div>
                         </div>
-                        {
-                            // CLEANUP:
-                            /* {import.meta.env.DEV ? (
-                            <div className="mt-2 break-all rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600">
-                                {payUrl}
-                            </div>
-                        ) : (
-                            <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
-                                <div className="min-w-0 truncate text-[11px] font-semibold text-slate-700">
-                                    {payUrlPreview(payUrl)}
-                                </div>
-                                <div className="flex-none text-[10px] font-bold text-slate-500">
-                                    (hidden)
-                                </div>
-                            </div>
-                        )} */
-                        }
                         <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
                             <div className="min-w-0 truncate text-[11px] font-semibold text-slate-700">
                                 {payUrlPreview(payUrl)}

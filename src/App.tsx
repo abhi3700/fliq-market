@@ -9,6 +9,7 @@ import {
     create_pay_receipt_url,
     checkPaymentStatus,
     generateSessionId,
+    set_unifi_web_app_base_url,
 } from "./lib/unifi/utils";
 
 type Screen = "marketplace" | "payment";
@@ -92,6 +93,30 @@ export default function App() {
         "Waiting for payment…",
     );
     const [unifiPayUrl, setUnifiPayUrl] = useState<string | null>(null);
+
+    useEffect(() => {
+        // Fetch runtime config from Cloudflare Pages Function
+        (async () => {
+            try {
+                const r = await fetch("/api/config", {
+                    method: "GET",
+                    headers: { Accept: "application/json" },
+                });
+
+                if (!r.ok) return;
+
+                const j = (await r.json()) as {
+                    UNIFI_WEB_APP_BASE_URL?: string;
+                };
+
+                if (j?.UNIFI_WEB_APP_BASE_URL) {
+                    set_unifi_web_app_base_url(j.UNIFI_WEB_APP_BASE_URL);
+                }
+            } catch {
+                // fallback will be used automatically
+            }
+        })();
+    }, []);
 
     // Dummy status simulator: after a few checks, we mark as paid.
     // TODO: can we remove this?
@@ -574,10 +599,6 @@ function PaymentView({
                                 >
                                     View receipt
                                 </a>
-                                // CLEANUP:
-                                {/* <div className="mt-2 break-all rounded-xl border border-emerald-200 bg-white px-3 py-2 text-xs text-slate-600">
-                  {receiptUrl}
-                </div> */}
                             </div>
                         ) : null}
 
