@@ -465,7 +465,7 @@ export function UnifiWaitDialog({
                             <span>
                                 {loadingAction === "check"
                                     ? "Checking…"
-                                    : "Check status"}
+                                    : "Done!"}
                             </span>
                         </span>
                     </button>

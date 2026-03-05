@@ -11,6 +11,7 @@ import {
     generateSessionId,
     set_unifi_web_app_base_url,
 } from "./lib/unifi/utils";
+import { EXPIRY_SECONDS } from "./lib/unifi/constants";
 
 type Screen = "marketplace" | "payment";
 
@@ -219,7 +220,7 @@ export default function App() {
         if (!unifiDialogOpen) return;
 
         // Reset timer whenever dialog opens
-        setUnifiSecondsLeft(15 * 60);
+        setUnifiSecondsLeft(EXPIRY_SECONDS);
 
         const id = window.setInterval(() => {
             setUnifiSecondsLeft((s) => {
