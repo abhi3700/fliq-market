@@ -87,7 +87,8 @@ export default function App() {
     const [receiptId, setReceiptId] = useState<string | null>(null);
 
     const [unifiDialogOpen, setUnifiDialogOpen] = useState(false);
-    const [unifiSecondsLeft, setUnifiSecondsLeft] = useState<number>(15 * 60);
+    const [unifiSecondsLeft, setUnifiSecondsLeft] =
+        useState<number>(EXPIRY_SECONDS);
     const [unifiSessionId, setUnifiSessionId] = useState<string | null>(null);
     const [unifiStatusText, setUnifiStatusText] = useState<string>(
         "Waiting for payment…",
