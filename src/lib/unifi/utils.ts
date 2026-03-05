@@ -209,3 +209,72 @@ export async function checkPaymentStatus(
         return { state: "failed", message };
     }
 }
+
+/**
+ * Build a deterministic session id (sha256) and open the UniFi pay URL in a new tab
+ *
+ * @param args
+ * @returns
+ */
+export async function create_unifi_session(args: {
+    merchant_id: string;
+    user_id: string;
+    seed: string;
+    chain: string;
+    coin: string;
+    to_address: string;
+    amount: string;
+}): Promise<{ sessionId: string; payUrl: string }> {
+    const timestamp_us = Date.now() * 1000;
+
+    // Keep payload stable; changes in JSON key order / values will change the hash.
+    const payload = JSON.stringify({
+        chain: args.chain,
+        coin: args.coin,
+        to_address: args.to_address,
+        amount: args.amount,
+    });
+
+    const sessionId = await generateSessionId({
+        merchant_id: args.merchant_id,
+        user_id: args.user_id,
+        payload,
+        seed: args.seed,
+        timestamp_us,
+    });
+
+    const payUrl = create_pay_url({
+        chain: args.chain,
+        coin: args.coin,
+        to_address: args.to_address,
+        amount: args.amount,
+        session_id: sessionId,
+    });
+
+    return { sessionId, payUrl };
+}
+
+/**
+ * Fetch runtime config from Cloudflare Pages Function
+ * @returns None
+ */
+export async function load_unifi_runtime_config(): Promise<void> {
+    try {
+        const r = await fetch("/api/config", {
+            method: "GET",
+            headers: { Accept: "application/json" },
+        });
+
+        if (!r.ok) return;
+
+        const j = (await r.json()) as {
+            UNIFI_WEB_APP_BASE_URL?: string;
+        };
+
+        if (j?.UNIFI_WEB_APP_BASE_URL) {
+            set_unifi_web_app_base_url(j.UNIFI_WEB_APP_BASE_URL);
+        }
+    } catch {
+        // fallback will be used automatically
+    }
+}

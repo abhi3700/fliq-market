@@ -86,6 +86,7 @@ export const onRequest: PagesFunction<Env> = async (ctx) => {
 function corsHeaders(request: Request) {
     const origin = request.headers.get("Origin") ?? "*";
 
+    // TODO:
     // You can restrict this instead of "*" if you want:
     // const allowed = new Set(["https://yourdomain.com"]);
     // const allowOrigin = allowed.has(origin) ? origin : "null";
