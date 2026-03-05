@@ -1,15 +1,14 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { products } from "./data/products";
 import { PaymentMethod, type Product } from "./types";
 import { formatUsd } from "./utils/money";
 import { UniFiPayOption, UnifiWaitDialog } from "./lib/unifi/widget";
 import { UnifiAsset, UnifiNetwork } from "./lib/unifi/types";
 import {
-    create_pay_url,
     create_pay_receipt_url,
     checkPaymentStatus,
-    generateSessionId,
-    set_unifi_web_app_base_url,
+    create_unifi_session,
+    load_unifi_runtime_config,
 } from "./lib/unifi/utils";
 import { EXPIRY_SECONDS } from "./lib/unifi/constants";
 
@@ -96,32 +95,8 @@ export default function App() {
     const [unifiPayUrl, setUnifiPayUrl] = useState<string | null>(null);
 
     useEffect(() => {
-        // Fetch runtime config from Cloudflare Pages Function
-        (async () => {
-            try {
-                const r = await fetch("/api/config", {
-                    method: "GET",
-                    headers: { Accept: "application/json" },
-                });
-
-                if (!r.ok) return;
-
-                const j = (await r.json()) as {
-                    UNIFI_WEB_APP_BASE_URL?: string;
-                };
-
-                if (j?.UNIFI_WEB_APP_BASE_URL) {
-                    set_unifi_web_app_base_url(j.UNIFI_WEB_APP_BASE_URL);
-                }
-            } catch {
-                // fallback will be used automatically
-            }
-        })();
+        void load_unifi_runtime_config();
     }, []);
-
-    // Dummy status simulator: after a few checks, we mark as paid.
-    // TODO: can we remove this?
-    const unifiCheckCountRef = useRef(0);
 
     async function onUnifiCheckStatus() {
         if (!unifiSessionId) return;
@@ -161,18 +136,12 @@ export default function App() {
         setUnifiStatusText("Still waiting for payment…");
     }
 
-    async function onUnifiDone() {
-        // For now, Done behaves the same as Check status.
-        await onUnifiCheckStatus();
-    }
-
     function closeUnifiDialog() {
         setReceiptId(null);
         setUnifiPayUrl(null);
         setUnifiDialogOpen(false);
         setIsPaying(false);
         setUnifiStatusText("Waiting for payment…");
-        unifiCheckCountRef.current = 0;
     }
 
     const filtered = useMemo(() => {
@@ -206,7 +175,6 @@ export default function App() {
         setUnifiSessionId(null);
         setUnifiPayUrl(null);
         setUnifiStatusText("Waiting for payment…");
-        unifiCheckCountRef.current = 0;
         setScreen("payment");
     }
 
@@ -248,36 +216,17 @@ export default function App() {
             // TODO: In production, format based on token decimals.
             const amountStr = pricing.total.toFixed(2); // "12.34"
 
-            // 1) Build a deterministic session id (sha256) and open the UniFi pay URL in a new tab
-            const timestamp_us = Date.now() * 1000;
-
-            // Keep payload stable; changes in JSON key order / values will change the hash.
-            const payload = JSON.stringify({
+            const { sessionId, payUrl } = await create_unifi_session({
+                merchant_id: "demo_merchant",
+                user_id: "demo_user",
+                seed: "demo_seed",
                 chain: unifiNetwork,
                 coin: unifiAsset,
                 to_address: "0x000000000000000000000000000000000000dEaD", // demo address
                 amount: amountStr,
-            });
-
-            const sessionId = await generateSessionId({
-                merchant_id: "demo_merchant",
-                user_id: "demo_user",
-                payload,
-                seed: "demo_seed",
-                timestamp_us,
             });
 
             setUnifiSessionId(sessionId);
-            unifiCheckCountRef.current = 0;
-
-            const payUrl = create_pay_url({
-                chain: unifiNetwork,
-                coin: unifiAsset,
-                to_address: "0x000000000000000000000000000000000000dEaD", // demo address
-                amount: amountStr,
-                session_id: sessionId,
-            });
-
             setUnifiPayUrl(payUrl);
             window.open(payUrl, "_blank", "noopener,noreferrer");
 
@@ -368,7 +317,6 @@ export default function App() {
                 statusText={unifiStatusText}
                 payUrl={unifiPayUrl}
                 onCheckStatus={onUnifiCheckStatus}
-                onDone={onUnifiDone}
                 onClose={closeUnifiDialog}
             />
 

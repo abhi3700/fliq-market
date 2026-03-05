@@ -290,7 +290,6 @@ export function UnifiWaitDialog({
     payUrl,
     onCheckStatus,
     onClose,
-    // onDone,
 }: {
     open: boolean;
     secondsLeft: number;
@@ -298,7 +297,6 @@ export function UnifiWaitDialog({
     payUrl?: string | null;
     onCheckStatus: () => Promise<void>;
     onClose: () => void;
-    onDone?: () => Promise<void>;
 }) {
     const [loadingAction, setLoadingAction] = useState<"check" | "done" | null>(
         null,
@@ -343,15 +341,6 @@ export function UnifiWaitDialog({
         }
     }
 
-    // async function handleDone() {
-    //   if (isLoading) return;
-    //   try {
-    //     setLoadingAction("done");
-    //     await onDone();
-    //   } finally {
-    //     setLoadingAction(null);
-    //   }
-    // }
     if (!open) return null;
 
     return (
