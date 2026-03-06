@@ -10,7 +10,7 @@ import {
     create_unifi_session,
     load_unifi_runtime_config,
 } from "./lib/unifi/utils";
-import { EXPIRY_SECONDS } from "./lib/unifi/constants";
+import { TOT_EXPIRY_SECONDS } from "./lib/unifi/constants";
 
 type Screen = "marketplace" | "payment";
 
@@ -87,7 +87,8 @@ export default function App() {
     const [receiptId, setReceiptId] = useState<string | null>(null);
 
     const [unifiDialogOpen, setUnifiDialogOpen] = useState(false);
-    const [unifiSecondsLeft, setUnifiSecondsLeft] = useState<number>(15 * 60);
+    const [unifiSecondsLeft, setUnifiSecondsLeft] =
+        useState<number>(TOT_EXPIRY_SECONDS);
     const [unifiSessionId, setUnifiSessionId] = useState<string | null>(null);
     const [unifiStatusText, setUnifiStatusText] = useState<string>(
         "Waiting for payment…",
@@ -184,23 +185,37 @@ export default function App() {
         // We'll keep selected so user can go back & checkout again quickly if desired.
     }
 
+    // NOTE: Use a real deadline-based countdown so the timer matches wall-clock time
+    // even if the tab is backgrounded or interval ticks are delayed.
     useEffect(() => {
         if (!unifiDialogOpen) return;
 
-        // Reset timer whenever dialog opens
-        setUnifiSecondsLeft(EXPIRY_SECONDS);
+        const expiresAt = Date.now() + TOT_EXPIRY_SECONDS * 1000;
+
+        const syncRemaining = () => {
+            const remaining = Math.max(
+                0,
+                Math.ceil((expiresAt - Date.now()) / 1000),
+            );
+
+            setUnifiSecondsLeft(remaining);
+
+            if (remaining === 0) {
+                closeUnifiDialog();
+                return true;
+            }
+
+            return false;
+        };
+
+        // Set immediately so the UI starts from the exact configured duration.
+        if (syncRemaining()) return;
 
         const id = window.setInterval(() => {
-            setUnifiSecondsLeft((s) => {
-                if (s <= 1) {
-                    window.clearInterval(id);
-                    // Auto-close after 15 mins
-                    closeUnifiDialog();
-                    return 0;
-                }
-                return s - 1;
-            });
-        }, 1000);
+            if (syncRemaining()) {
+                window.clearInterval(id);
+            }
+        }, 250);
 
         return () => window.clearInterval(id);
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -230,7 +245,7 @@ export default function App() {
             setUnifiPayUrl(payUrl);
             window.open(payUrl, "_blank", "noopener,noreferrer");
 
-            // 2) Show a dialog waiting for payment (auto closes after 15 mins)
+            // 2) Show a dialog waiting for payment (auto closes after 20 mins)
             setUnifiStatusText("Waiting for payment…");
             setUnifiDialogOpen(true);
             return; // Don't mark success yet; we do it after status becomes "paid"

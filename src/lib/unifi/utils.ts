@@ -8,6 +8,7 @@ export type CreatePayUrlParams = {
     // E.g. "100" or "100.2344".
     amount: string;
     session_id?: string;
+    start_ts?: number;
 };
 
 let UNIFI_WEB_APP_BASE_URL_RUNTIME: string | null = null;
@@ -25,7 +26,7 @@ export function get_unifi_web_app_base_url(): string {
 }
 
 export function create_pay_url(params: CreatePayUrlParams): string {
-    const { chain, coin, to_address, amount, session_id } = params;
+    const { chain, coin, to_address, amount, session_id, start_ts } = params;
 
     const parts = [
         "fliqpay",
@@ -37,6 +38,10 @@ export function create_pay_url(params: CreatePayUrlParams): string {
 
     if (session_id) {
         parts.push(encodeURIComponent(session_id));
+    }
+
+    if (start_ts) {
+        parts.push(encodeURIComponent(start_ts));
     }
 
     const path = "/" + parts.join("/");
@@ -225,7 +230,9 @@ export async function create_unifi_session(args: {
     to_address: string;
     amount: string;
 }): Promise<{ sessionId: string; payUrl: string }> {
-    const timestamp_us = Date.now() * 1000;
+    const timestamp_ms = Date.now();
+    const timestamp_s = Math.floor(timestamp_ms / 1000);
+    const timestamp_us = timestamp_ms * 1000;
 
     // Keep payload stable; changes in JSON key order / values will change the hash.
     const payload = JSON.stringify({
@@ -249,6 +256,7 @@ export async function create_unifi_session(args: {
         to_address: args.to_address,
         amount: args.amount,
         session_id: sessionId,
+        start_ts: timestamp_s,
     });
 
     return { sessionId, payUrl };
