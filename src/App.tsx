@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { products } from "./data/products";
 import { PaymentMethod, type Product } from "./types";
 import { formatUsd } from "./utils/money";
-import { UniFiPayOption, UnifiWaitDialog } from "./lib/unifi/widget";
+import {
+    UniFiPayOption,
+    UnifiWaitDialog,
+    ViewReceipt,
+} from "./lib/unifi/widget";
 import { UnifiAsset, UnifiNetwork } from "./lib/unifi/types";
 import {
     create_pay_receipt_url,
@@ -553,17 +557,9 @@ function PaymentView({
                         <div className="mt-1 text-sm text-slate-600">
                             Order confirmed for <b>{selected.title}</b>.
                         </div>
+
                         {receiptUrl ? (
-                            <div className="mt-3">
-                                <a
-                                    className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99]"
-                                    href={receiptUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                >
-                                    View receipt
-                                </a>
-                            </div>
+                            <ViewReceipt receiptUrl={receiptUrl} />
                         ) : null}
 
                         <div className="mt-3">
@@ -582,7 +578,6 @@ function PaymentView({
                 <div className="text-sm font-extrabold tracking-wide text-slate-900">
                     Order summary
                 </div>
-
                 <div className="mt-4 flex items-center gap-4">
                     <img
                         className="h-16 w-16 rounded-xl object-cover"
@@ -598,7 +593,6 @@ function PaymentView({
                         </div>
                     </div>
                 </div>
-
                 <div className="mt-5 flex items-center justify-between">
                     <div className="text-xs font-semibold text-slate-500">
                         Quantity
@@ -623,7 +617,6 @@ function PaymentView({
                         </button>
                     </div>
                 </div>
-
                 <div className="mt-5 space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
                     <div className="flex items-center justify-between text-sm">
                         <div className="text-slate-600">Actual price</div>
@@ -653,10 +646,13 @@ function PaymentView({
                         <div>{formatUsd(pricing.total)}</div>
                     </div>
                 </div>
-
-                <div className="mt-3 text-xs text-slate-500">
-                    Note: Demo flow only (no real gateway).
-                </div>
+                <div className="mt-4 flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
+                    <span className="text-sm">ℹ️</span>
+                    <span>
+                        <b>UniFi payments are live.</b> Debit card, credit card
+                        and UPI are demo-only in this marketplace.
+                    </span>
+                </div>{" "}
             </div>
         </div>
     );

@@ -47,13 +47,7 @@ export function UniFiPayOption({
 
             <div className="flex flex-col gap-2.5">
                 <div className="flex items-center gap-2">
-                    <span className="inline-flex h-5 w-5 flex-none items-center justify-center rounded-full bg-indigo-600">
-                        <img
-                            src={unifiIcon}
-                            alt="UniFi"
-                            className="block h-5 w-5"
-                        />
-                    </span>
+                    <UniFiIcon icon={unifiIcon} size={5} />
                     <span className="text-lg font-extrabold leading-none tracking-tight text-[#321967]">
                         UniFi
                     </span>
@@ -251,6 +245,60 @@ function PillSelect<T extends string>({
                 </div>
             ) : null}
         </div>
+    );
+}
+
+/**
+ * View UniFi Receipt.
+ *
+ * @param param0 receipt url
+ * @returns None
+ */
+export function ViewReceipt({ receiptUrl }: { receiptUrl: string | null }) {
+    if (!receiptUrl) return null;
+
+    return (
+        <div className="mt-3">
+            <div className="flex items-center gap-2">
+                <UniFiIcon icon={unifiIcon} size={4} />
+                <a
+                    href={receiptUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99]"
+                >
+                    <span>View receipt</span>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="currentColor"
+                        className="h-4 w-4"
+                    >
+                        <path d="M13.5 3a.75.75 0 000 1.5h4.19L9.22 12.97a.75.75 0 101.06 1.06L18.75 5.56v4.19a.75.75 0 001.5 0V3.75A.75.75 0 0019.5 3h-6z" />
+                        <path d="M5.25 5.25A2.25 2.25 0 003 7.5v9A2.25 2.25 0 005.25 18.75h9A2.25 2.25 0 0016.5 16.5v-3a.75.75 0 00-1.5 0v3a.75.75 0 01-.75.75h-9a.75.75 0 01-.75-.75v-9a.75.75 0 01.75-.75h3a.75.75 0 000-1.5h-3z" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    );
+}
+
+function UniFiIcon({ icon, size }: { icon: string; size: number }) {
+    const sizeClass =
+        {
+            4: "h-4 w-4",
+            5: "h-5 w-5",
+            6: "h-6 w-6",
+            7: "h-7 w-7",
+            8: "h-8 w-8",
+        }[size] ?? "h-4 w-4";
+
+    return (
+        <span
+            className={`inline-flex ${sizeClass} flex-none items-center justify-center rounded-full bg-indigo-600`}
+        >
+            <img src={icon} alt="UniFi" className={`block ${sizeClass}`} />
+        </span>
     );
 }
 
