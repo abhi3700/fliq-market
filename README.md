@@ -96,6 +96,12 @@ npm run build
 wrangler pages deploy dist --project-name fliqm
 ```
 
+OR
+
+```sh
+./deploy.sh
+```
+
 ### 🚀 Live Demo
 
 🛒 Experience **FliQ Market** in action:  
