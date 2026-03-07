@@ -431,7 +431,7 @@ function PaymentView({
                         className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99]"
                         onClick={onBack}
                     >
-                        Back to Marketplace
+                        ← Back to Marketplace
                     </button>
                 </div>
             </div>
@@ -571,7 +571,7 @@ function PaymentView({
                                 className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] cursor-pointer"
                                 onClick={onBack}
                             >
-                                Back to Marketplace
+                                ← Back to Marketplace
                             </button>
                         </div>
                     </div>
