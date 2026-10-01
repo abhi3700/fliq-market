@@ -1,0 +1,29 @@
+Design improvements:
+    ✔ Fix the radio position towards up in UniFi pay option @done(26-02-28 17:33)
+    ✔ Convert the styling to tailwind css. @done(26-02-28 17:55)
+    ✔ Add hand sign on hovering over button, .. @done(26-02-28 18:36)
+    ✔ Fix the radio position properly in all except "UniFi ...". @done(26-02-28 19:09)
+    ✔ Make the asset & network appear on horizontal row in mobile mode. @done(26-03-01 12:14)
+    ✔ change page icon bg color to black @done(26-03-02 22:00)
+    ✔ add back arrow to "Back to Marketplace" @done(26-03-07 12:48)
+    ✔ improve view receipt button. Put icon inside it. @done(26-03-07 16:50)
+
+UniFi PG Integration
+    ✔ create session_id. @done(26-03-01 17:56)
+    ✔ Open a dialog opening a link as in-app browser. @done(26-03-01 17:56)
+    ✔ create API function to check pay status. @done(26-03-02 00:22)
+        ✔ if it returns empty receipt_id, then mark it as pending. @done(26-03-02 10:39)
+    ✔ FIX CORS issue @done(26-03-02 13:35)
+    ✔ add loading effect "Checking.." on the buttons: @done(26-03-02 15:24)
+    ✔ Done! @done(26-03-02 15:24)
+        ✔ Check Status @done(26-03-02 15:24)
+    ✔ show upstream error in waiting dialog. @done(26-03-02 19:24)
+    ✔ Show receipt_url upon completion @done(26-03-02 21:17)
+    ✔ Move UNIFI_WEB_APP_BASE_URL to cloudflare function env file. @done(26-03-02 23:30)
+    ✔ Test payment. @done(26-03-02 23:51)
+    ✔ Show pay_url in the dialog. @done(26-03-02 22:21);
+        ✔ add timer in the pay link @done(26-03-06 02:13)
+    ✔ FIXME: 20 mins timer not working properly. going slow. @done(26-03-07 12:34)
+    ✔ Create a lib with unifi widgets (comp. function) @done(26-10-01 20:11)
+        ✔ w asset & network @done(26-03-01 17:56)
+    - Deploy the fliqm.pages.dev to fliqm.payunifi.com

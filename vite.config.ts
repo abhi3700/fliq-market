@@ -62,12 +62,12 @@ export default defineConfig(({ mode }) => {
     // handled by the local runtime-config plugin before this proxy.
     server: {
       proxy: {
-        "/api": {
+        "/api/unifi": {
           target: apiBaseUrl,
           changeOrigin: true,
           secure: false,
           headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
-          rewrite: (path) => path.replace(/^\/api/, ""),
+          rewrite: (path) => path.replace(/^\/api\/unifi/, ""),
         },
       },
     },

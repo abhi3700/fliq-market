@@ -13,7 +13,7 @@ type PagesContext = {
 };
 
 const handleUniFiProxy = createCloudflarePagesFunction<Env>({
-  apiPrefix: "/api",
+  apiPrefix: "/api/unifi",
 });
 
 export function onRequest(context: PagesContext): Promise<Response> | Response {

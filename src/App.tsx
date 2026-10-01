@@ -165,7 +165,7 @@ export default function App() {
 
         setUnifiStatusText("Checking status…");
         const r = await checkUniFiPaymentStatus(unifiSessionId, {
-            proxyBaseUrl: "/api",
+            proxyBaseUrl: "/api/unifi",
         });
 
         if (r.state === "paid") {
