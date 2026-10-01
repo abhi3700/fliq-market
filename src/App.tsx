@@ -3,18 +3,17 @@ import { products } from "./data/products";
 import { PaymentMethod, type Product } from "./types";
 import { formatUsd } from "./utils/money";
 import {
-    UniFiPayOption,
-    UnifiWaitDialog,
-    ViewReceipt,
-} from "./lib/unifi/widget";
-import { UnifiAsset, UnifiNetwork } from "./lib/unifi/types";
+    UniFiPaymentOption,
+    UniFiPaymentStatusSheet,
+    UniFiReceiptLink,
+} from "unifi-pay-widget/react";
 import {
-    create_pay_receipt_url,
-    checkPaymentStatus,
-    create_unifi_session,
-    load_unifi_runtime_config,
-} from "./lib/unifi/utils";
-import { TOT_EXPIRY_SECONDS } from "./lib/unifi/constants";
+    UNIFI_PAYMENT_EXPIRY_SECONDS,
+    checkUniFiPaymentStatus,
+    createUniFiPayment,
+    type UniFiAsset,
+    type UniFiNetwork,
+} from "unifi-pay-widget";
 
 type Screen = "marketplace" | "payment";
 
@@ -86,43 +85,88 @@ export default function App() {
 
     const [qty, setQty] = useState<number>(1);
     const [method, setMethod] = useState<PaymentMethod>(PaymentMethod.Unifi);
-    const [unifiAsset, setUnifiAsset] = useState<UnifiAsset>("USDT");
-    const [unifiNetwork, setUnifiNetwork] = useState<UnifiNetwork>("Ethereum");
+    const [unifiAsset, setUnifiAsset] = useState<UniFiAsset>("USDT");
+    const [unifiNetwork, setUnifiNetwork] = useState<UniFiNetwork>("Ethereum");
     const [isPaying, setIsPaying] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [receiptId, setReceiptId] = useState<string | null>(null);
 
     const [unifiDialogOpen, setUnifiDialogOpen] = useState(false);
     const [unifiSecondsLeft, setUnifiSecondsLeft] =
-        useState<number>(TOT_EXPIRY_SECONDS);
+        useState<number>(UNIFI_PAYMENT_EXPIRY_SECONDS);
     const [unifiSessionId, setUnifiSessionId] = useState<string | null>(null);
     const [unifiStatusText, setUnifiStatusText] = useState<string>(
         "Waiting for payment…",
     );
     const [unifiPayUrl, setUnifiPayUrl] = useState<string | null>(null);
+    const [unifiWebAppBaseUrl, setUnifiWebAppBaseUrl] = useState<
+        string | undefined
+    >();
+    const [merchantWalletAddress, setMerchantWalletAddress] = useState<
+        string | null
+    >(null);
+    const [unifiConfigError, setUnifiConfigError] = useState<string | null>(
+        null,
+    );
 
     useEffect(() => {
-        void load_unifi_runtime_config();
+        async function loadUniFiRuntimeConfig() {
+            try {
+                const response = await fetch("/api/config", {
+                    headers: { Accept: "application/json" },
+                });
+                const config = (await response.json()) as {
+                    error?: unknown;
+                    MERCHANT_WALLET_ADDRESS?: unknown;
+                    UNIFI_WEB_APP_BASE_URL?: unknown;
+                };
+                if (!response.ok) {
+                    throw new Error(
+                        typeof config.error === "string"
+                            ? config.error
+                            : "Unable to load the UniFi configuration.",
+                    );
+                }
+
+                if (typeof config.MERCHANT_WALLET_ADDRESS !== "string") {
+                    throw new Error(
+                        "Server configuration is missing MERCHANT_WALLET_ADDRESS.",
+                    );
+                }
+
+                const walletAddress = config.MERCHANT_WALLET_ADDRESS.trim();
+                if (!walletAddress) {
+                    throw new Error(
+                        "Server configuration is missing MERCHANT_WALLET_ADDRESS.",
+                    );
+                }
+
+                setMerchantWalletAddress(walletAddress);
+                setUnifiConfigError(null);
+
+                if (typeof config.UNIFI_WEB_APP_BASE_URL === "string") {
+                    const baseUrl = config.UNIFI_WEB_APP_BASE_URL.trim();
+                    if (baseUrl) setUnifiWebAppBaseUrl(baseUrl);
+                }
+            } catch (error) {
+                setUnifiConfigError(
+                    error instanceof Error
+                        ? error.message
+                        : "Unable to load the UniFi configuration.",
+                );
+            }
+        }
+
+        void loadUniFiRuntimeConfig();
     }, []);
 
     async function onUnifiCheckStatus() {
         if (!unifiSessionId) return;
 
         setUnifiStatusText("Checking status…");
-        // In production we call via same-origin /api proxy (Cloudflare Function injects the key).
-        // In dev, you can optionally call direct with a key, but default is still /api.
-        const r = await checkPaymentStatus(unifiSessionId, {
-            apiBaseUrl: "/api",
-            apiKey: import.meta.env.DEV
-                ? (import.meta.env.VITE_UNIFI_API_KEY as string | undefined)
-                : undefined,
+        const r = await checkUniFiPaymentStatus(unifiSessionId, {
+            proxyBaseUrl: "/api",
         });
-
-        if (import.meta.env.DEV && !import.meta.env.VITE_UNIFI_API_KEY) {
-            // Not fatal if you're using the /api proxy in dev too, but helpful for direct mode.
-            // You can ignore this message if /api is working.
-            // (Keeping it as status text only when we're failing.)
-        }
 
         if (r.state === "paid") {
             setReceiptId(r.receiptId);
@@ -196,7 +240,8 @@ export default function App() {
     useEffect(() => {
         if (!unifiDialogOpen) return;
 
-        const expiresAt = Date.now() + TOT_EXPIRY_SECONDS * 1000;
+        const expiresAt =
+            Date.now() + UNIFI_PAYMENT_EXPIRY_SECONDS * 1000;
 
         const syncRemaining = () => {
             const remaining = Math.max(
@@ -224,27 +269,31 @@ export default function App() {
         }, 250);
 
         return () => window.clearInterval(id);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [unifiDialogOpen]);
 
     async function payNow() {
         if (!selected || !pricing) return;
 
-        setIsPaying(true);
-
         if (method == PaymentMethod.Unifi) {
+            if (!merchantWalletAddress) {
+                setUnifiConfigError(
+                    "Server configuration is missing MERCHANT_WALLET_ADDRESS.",
+                );
+                return;
+            }
+
+            setIsPaying(true);
+
             // pricing.total is in USD; for the demo we use 2 decimals.
             // TODO: In production, format based on token decimals.
             const amountStr = pricing.total.toFixed(2); // "12.34"
 
-            const { sessionId, payUrl } = await create_unifi_session({
-                merchant_id: "demo_merchant",
-                user_id: "demo_user",
-                seed: "demo_seed",
-                chain: unifiNetwork,
-                coin: unifiAsset,
-                to_address: "0x000000000000000000000000000000000000dEaD", // demo address
+            const { sessionId, payUrl } = createUniFiPayment({
+                network: unifiNetwork,
+                asset: unifiAsset,
+                recipient: merchantWalletAddress,
                 amount: amountStr,
+                checkoutBaseUrl: unifiWebAppBaseUrl,
             });
 
             setUnifiSessionId(sessionId);
@@ -256,6 +305,7 @@ export default function App() {
             setUnifiDialogOpen(true);
             return; // Don't mark success yet; we do it after status becomes "paid"
         } else {
+            setIsPaying(true);
             // fake payment
             await new Promise((r) => setTimeout(r, 900));
         }
@@ -332,13 +382,16 @@ export default function App() {
                         isPaying={isPaying}
                         isSuccess={isSuccess}
                         receiptId={receiptId}
+                        unifiWebAppBaseUrl={unifiWebAppBaseUrl}
+                        isUniFiConfigured={Boolean(merchantWalletAddress)}
+                        unifiConfigError={unifiConfigError}
                         onPay={payNow}
                         onBack={backToMarketplace}
                     />
                 )}
             </main>
 
-            <UnifiWaitDialog
+            <UniFiPaymentStatusSheet
                 open={unifiDialogOpen}
                 secondsLeft={unifiSecondsLeft}
                 statusText={unifiStatusText}
@@ -410,6 +463,9 @@ function PaymentView({
     isPaying,
     isSuccess,
     receiptId,
+    unifiWebAppBaseUrl,
+    isUniFiConfigured,
+    unifiConfigError,
     onPay,
     onBack,
 }: {
@@ -418,14 +474,17 @@ function PaymentView({
     setQty: (n: number) => void;
     method: PaymentMethod;
     setMethod: (m: PaymentMethod) => void;
-    unifiAsset: UnifiAsset;
-    setUnifiAsset: (a: UnifiAsset) => void;
-    unifiNetwork: UnifiNetwork;
-    setUnifiNetwork: (n: UnifiNetwork) => void;
+    unifiAsset: UniFiAsset;
+    setUnifiAsset: (a: UniFiAsset) => void;
+    unifiNetwork: UniFiNetwork;
+    setUnifiNetwork: (n: UniFiNetwork) => void;
     pricing: { subtotal: number; tax: number; total: number } | null;
     isPaying: boolean;
     isSuccess: boolean;
     receiptId: string | null;
+    unifiWebAppBaseUrl?: string;
+    isUniFiConfigured: boolean;
+    unifiConfigError: string | null;
     onPay: () => void;
     onBack: () => void;
 }) {
@@ -451,8 +510,6 @@ function PaymentView({
     }
 
     const disableEdits = isPaying || isSuccess;
-    const receiptUrl = receiptId ? create_pay_receipt_url(receiptId) : null;
-
     return (
         <div className="grid grid-cols-1 gap-3 sm:gap-5 lg:grid-cols-2">
             <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:rounded-2xl sm:p-5">
@@ -533,22 +590,40 @@ function PaymentView({
                         </div>
                     </label>
 
-                    <UniFiPayOption
-                        method={method}
-                        setMethod={setMethod}
-                        disableEdits={disableEdits}
-                        asset={unifiAsset}
-                        setAsset={setUnifiAsset}
-                        network={unifiNetwork}
-                        setNetwork={setUnifiNetwork}
+                    <UniFiPaymentOption
+                        radioName="payment"
+                        selected={method === PaymentMethod.Unifi}
+                        onSelect={() => setMethod(PaymentMethod.Unifi)}
+                        disabled={disableEdits}
+                        value={{
+                            asset: unifiAsset,
+                            network: unifiNetwork,
+                        }}
+                        onChange={({ asset, network }) => {
+                            setUnifiAsset(asset);
+                            setUnifiNetwork(network);
+                        }}
                     />
                 </div>
+
+                {method === PaymentMethod.Unifi && unifiConfigError ? (
+                    <div
+                        className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700"
+                        role="alert"
+                    >
+                        UniFi payment is unavailable: {unifiConfigError}
+                    </div>
+                ) : null}
 
                 {!isSuccess ? (
                     <button
                         className="mt-3 w-full cursor-pointer rounded-xl bg-slate-900 px-3 py-2.5 text-[13px] font-extrabold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.99] sm:mt-4 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm"
                         onClick={onPay}
-                        disabled={isPaying}
+                        disabled={
+                            isPaying ||
+                            (method === PaymentMethod.Unifi &&
+                                !isUniFiConfigured)
+                        }
                     >
                         {isPaying
                             ? "Processing…"
@@ -566,8 +641,11 @@ function PaymentView({
                             Order confirmed for <b>{selected.title}</b>.
                         </div>
 
-                        {receiptUrl ? (
-                            <ViewReceipt receiptUrl={receiptUrl} />
+                        {receiptId ? (
+                            <UniFiReceiptLink
+                                receiptId={receiptId}
+                                checkoutBaseUrl={unifiWebAppBaseUrl}
+                            />
                         ) : null}
 
                         <div className="mt-3">

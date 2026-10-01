@@ -1,5 +1,6 @@
-# Build
-npm run build
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Prod
-wrangler pages deploy dist --project-name fliqm --branch main
+npm ci
+npm run build
+npx wrangler pages deploy dist --project-name fliqm --branch main
