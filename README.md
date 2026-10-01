@@ -61,9 +61,10 @@ The project tracks `unifi-pay-widget#main`. npm records the resolved commit in `
 Copy `.env.template` to `.env.development.local`, set the required values, and run:
 
 ```sh
-npm install --save --force 'github:abhi3700/unifi-pay-widget#main'
-npm run dev
+./dev.sh
 ```
+
+`dev.sh` refreshes the widget from `main` and starts the Vite development server with hot reload using `.env.development.local`.
 
 ### Cloudflare Pages preview
 
