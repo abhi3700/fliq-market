@@ -267,7 +267,13 @@ export default function App() {
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900">
             <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur">
-                <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-4 sm:py-4">
+                <div
+                    className={`mx-auto flex max-w-6xl gap-2 px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 ${
+                        screen === "marketplace"
+                            ? "flex-col items-stretch sm:flex-row sm:items-center sm:justify-between"
+                            : "items-center justify-between"
+                    }`}
+                >
                     <div className="flex items-center gap-2 sm:gap-3">
                         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-xs font-extrabold text-white sm:h-10 sm:w-10 sm:rounded-xl sm:text-sm">
                             M
@@ -288,7 +294,7 @@ export default function App() {
 
                     {screen === "marketplace" ? (
                         <input
-                            className="w-full max-w-md rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-300 focus:ring-4 focus:ring-slate-100"
+                            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-300 focus:ring-4 focus:ring-slate-100 sm:mt-0 sm:max-w-md sm:rounded-xl sm:px-4 sm:text-sm"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Search products…"
@@ -354,30 +360,30 @@ function MarketplaceView({
     onBuy: (p: Product) => void;
 }) {
     return (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
             {products.map((p) => (
                 <div
                     key={p.id}
-                    className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                    className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md sm:rounded-2xl"
                 >
                     <img
-                        className="h-44 w-full object-cover"
+                        className="h-36 w-full object-cover sm:h-44"
                         src={p.imageUrl}
                         alt={p.title}
                     />
-                    <div className="space-y-3 p-4">
-                        <div className="text-base font-extrabold text-slate-900">
+                    <div className="space-y-2 p-3 sm:space-y-3 sm:p-4">
+                        <div className="text-sm font-extrabold text-slate-900 sm:text-base">
                             {p.title}
                         </div>
-                        <div className="text-sm text-slate-600">
+                        <div className="text-xs text-slate-600 sm:text-sm">
                             {p.description}
                         </div>
                         <div className="flex items-center justify-between">
-                            <div className="text-lg font-extrabold">
+                            <div className="text-base font-extrabold sm:text-lg">
                                 {formatUsd(p.priceUsd)}
                             </div>
                             <button
-                                className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-bold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99] cursor-pointer"
+                                className="cursor-pointer rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99] sm:rounded-xl sm:px-4 sm:py-2 sm:text-sm"
                                 onClick={() => onBuy(p)}
                             >
                                 Buy

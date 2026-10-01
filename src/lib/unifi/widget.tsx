@@ -239,22 +239,22 @@ function PaymentPairSheet({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="unifi-pair-sheet-title"
-                className="relative z-10 max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-[28px] border border-b-0 border-violet-200 bg-white px-5 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-left shadow-[0_-24px_70px_rgba(15,23,42,0.28)] sm:px-6 sm:pb-6"
+                className="relative z-10 max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-[24px] border border-b-0 border-violet-200 bg-white px-4 pt-2.5 pb-[calc(0.75rem+env(safe-area-inset-bottom))] text-left shadow-[0_-24px_70px_rgba(15,23,42,0.28)] sm:max-w-[26rem] sm:rounded-t-[26px] sm:px-5 sm:pt-3 sm:pb-5"
             >
                 <div
-                    className="mx-auto mb-5 h-1.5 w-11 rounded-full bg-slate-300"
+                    className="mx-auto mb-3 h-1 w-10 rounded-full bg-slate-300 sm:mb-4 sm:h-1.5 sm:w-11"
                     aria-hidden="true"
                 />
 
-                <div className="mb-7 flex items-start justify-between gap-4">
+                <div className="mb-4 flex items-start justify-between gap-3 sm:mb-5 sm:gap-4">
                     <div>
                         <h2
                             id="unifi-pair-sheet-title"
-                            className="m-0 text-xl leading-tight font-black tracking-[-0.035em] text-slate-950 sm:text-2xl"
+                            className="m-0 text-base leading-tight font-black tracking-[-0.035em] text-slate-950 sm:text-xl"
                         >
                             Select the asset &amp; network
                         </h2>
-                        <p className="mt-2 mb-0 text-sm leading-relaxed text-slate-500">
+                        <p className="mt-1 mb-0 text-xs leading-relaxed text-slate-500 sm:mt-1.5 sm:text-[13px]">
                             Choose the stablecoin and network you want to use.
                         </p>
                     </div>
@@ -263,21 +263,23 @@ function PaymentPairSheet({
                         type="button"
                         aria-label="Close asset and network picker"
                         onClick={onClose}
-                        className="grid h-10 w-10 flex-none place-items-center rounded-full border border-slate-300 bg-white p-0 text-lg text-slate-800 transition hover:border-violet-400 hover:bg-violet-50 active:scale-95"
+                        className="grid h-8 w-8 flex-none place-items-center rounded-full border border-slate-300 bg-white p-0 text-sm text-slate-800 transition hover:border-violet-400 hover:bg-violet-50 active:scale-95 sm:h-9 sm:w-9 sm:text-base"
                     >
                         <i className="bi bi-x-lg" aria-hidden="true"></i>
                     </button>
                 </div>
 
                 <div>
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                        <h3 className="m-0 text-base font-extrabold text-slate-950">
+                    <div className="mb-2 flex items-center justify-between gap-3 sm:mb-3">
+                        <h3 className="m-0 text-sm font-extrabold text-slate-950">
                             Assets
                         </h3>
-                        <span className="text-sm text-slate-500">Stablecoins</span>
+                        <span className="text-xs text-slate-500 sm:text-[13px]">
+                            Stablecoins
+                        </span>
                     </div>
                     <div
-                        className="flex flex-wrap items-center gap-2.5"
+                        className="flex flex-wrap items-center gap-2 sm:gap-2.5"
                         aria-label="Available stablecoins"
                     >
                         {ASSET_OPTIONS.map((option) => {
@@ -288,7 +290,7 @@ function PaymentPairSheet({
                                     type="button"
                                     aria-pressed={selected}
                                     onClick={() => setAsset(option.value)}
-                                    className={`flex min-h-10 items-center gap-2 rounded-full border px-2.5 py-1 text-sm font-extrabold shadow-sm transition hover:-translate-y-0.5 ${option.color} ${
+                                    className={`flex min-h-9 items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-extrabold shadow-sm transition hover:-translate-y-0.5 sm:px-2.5 sm:text-[13px] ${option.color} ${
                                         selected
                                             ? "ring-2 ring-blue-600 ring-offset-2"
                                             : ""
@@ -297,12 +299,12 @@ function PaymentPairSheet({
                                     <img
                                         src={option.icon}
                                         alt=""
-                                        className="h-7 w-7 rounded-full object-contain"
+                                        className="h-6 w-6 rounded-full object-contain"
                                     />
                                     <span>{option.value}</span>
                                     {selected ? (
                                         <i
-                                            className="bi bi-check-circle-fill text-sm"
+                                            className="bi bi-check-circle-fill text-xs sm:text-[13px]"
                                             aria-hidden="true"
                                         ></i>
                                     ) : null}
@@ -312,17 +314,19 @@ function PaymentPairSheet({
                     </div>
                 </div>
 
-                <div className="my-6 h-px bg-slate-200" />
+                <div className="my-4 h-px bg-slate-200 sm:my-5" />
 
                 <div>
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                        <h3 className="m-0 text-base font-extrabold text-slate-950">
+                    <div className="mb-2 flex items-center justify-between gap-3 sm:mb-3">
+                        <h3 className="m-0 text-sm font-extrabold text-slate-950">
                             Networks
                         </h3>
-                        <span className="text-sm text-slate-500">Select network</span>
+                        <span className="text-xs text-slate-500 sm:text-[13px]">
+                            Select network
+                        </span>
                     </div>
                     <div
-                        className="grid grid-cols-2 gap-2.5"
+                        className="grid grid-cols-2 gap-2"
                         aria-label="Available networks"
                     >
                         {NETWORK_OPTIONS.map((option) => {
@@ -333,7 +337,7 @@ function PaymentPairSheet({
                                     type="button"
                                     aria-pressed={selected}
                                     onClick={() => setNetwork(option.value)}
-                                    className={`flex min-h-14 min-w-0 items-center gap-3 rounded-xl border px-3 py-2 text-left text-sm font-extrabold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:border-violet-400 ${
+                                    className={`flex min-h-12 min-w-0 items-center gap-2 rounded-lg border px-2 py-1.5 text-left text-xs font-extrabold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:border-violet-400 sm:min-h-13 sm:gap-2.5 sm:rounded-xl sm:px-2.5 sm:text-[13px] ${
                                         selected
                                             ? "border-2 border-blue-600 bg-blue-50 ring-1 ring-blue-200"
                                             : "border-slate-200 bg-slate-50"
@@ -342,14 +346,14 @@ function PaymentPairSheet({
                                     <img
                                         src={option.icon}
                                         alt=""
-                                        className="h-7 w-7 flex-none object-contain"
+                                        className="h-6 w-6 flex-none object-contain"
                                     />
                                     <span className="min-w-0 flex-1 truncate">
                                         {option.value}
                                     </span>
                                     {selected ? (
                                         <i
-                                            className="bi bi-check-circle-fill flex-none text-blue-700"
+                                            className="bi bi-check-circle-fill flex-none text-xs text-blue-700 sm:text-sm"
                                             aria-hidden="true"
                                         ></i>
                                     ) : null}
@@ -362,7 +366,7 @@ function PaymentPairSheet({
                 <button
                     type="button"
                     onClick={onDone}
-                    className="mt-7 min-h-12 w-full rounded-2xl border border-emerald-400 bg-emerald-600 px-4 py-3 text-sm font-extrabold tracking-[0.08em] text-white shadow-[0_10px_24px_rgba(5,150,105,0.24)] transition hover:bg-emerald-700 active:scale-[0.99]"
+                    className="mt-4 min-h-11 w-full rounded-xl border border-emerald-400 bg-emerald-600 px-3 py-2.5 text-[13px] font-extrabold tracking-[0.08em] text-white shadow-[0_10px_24px_rgba(5,150,105,0.24)] transition hover:bg-emerald-700 active:scale-[0.99] sm:mt-5 sm:px-4"
                 >
                     Done
                 </button>
@@ -536,80 +540,117 @@ export function UnifiWaitDialog({
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="unifi-payment-status-title"
-                className="relative z-10 max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-[28px] border border-b-0 border-slate-200 bg-white px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-24px_70px_rgba(15,23,42,0.28)] sm:px-5 sm:pb-5"
+                className="relative z-10 max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-[28px] border border-b-0 border-violet-200 bg-[#fcfbff] px-4 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-24px_70px_rgba(38,17,79,0.32)] sm:px-5 sm:pb-5"
             >
-                <div
-                    className="mx-auto mb-4 h-1.5 w-11 rounded-full bg-slate-300"
-                    aria-hidden="true"
-                />
+                <div className="-mx-4 rounded-t-[27px] border-b border-violet-100 bg-violet-50/80 px-4 pt-3 pb-4 sm:-mx-5 sm:px-5">
+                    <div
+                        className="mx-auto mb-4 h-1.5 w-11 rounded-full bg-violet-300"
+                        aria-hidden="true"
+                    />
 
-                <div className="flex items-start justify-between gap-3">
-                    <div>
-                        <div
-                            id="unifi-payment-status-title"
-                            className="text-sm font-extrabold tracking-wide text-slate-900"
-                        >
-                            Waiting for payment
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="flex min-w-0 items-center gap-2.5">
+                            <UniFiIcon icon={unifiIcon} size={6} />
+                            <div className="min-w-0">
+                                <div className="text-sm font-black tracking-tight text-[#321967]">
+                                    UniFi Pay
+                                </div>
+                                <div className="truncate text-[10px] font-semibold text-violet-700/75">
+                                    Stablecoin checkout
+                                </div>
+                            </div>
                         </div>
-                        <div className="mt-1 text-xs text-slate-500">
-                            Timer:{" "}
-                            <span className="font-semibold">
+
+                        <button
+                            type="button"
+                            className="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-violet-200 bg-white px-3 py-1.5 text-xs font-bold text-[#321967] shadow-sm transition hover:border-violet-300 hover:bg-violet-50 active:scale-[0.98]"
+                            onClick={onClose}
+                        >
+                            <i className="bi bi-x-lg" aria-hidden="true"></i>
+                            <span>Close</span>
+                        </button>
+                    </div>
+
+                    <div className="mt-4 flex items-end justify-between gap-3">
+                        <div>
+                            <div
+                                id="unifi-payment-status-title"
+                                className="text-lg font-black tracking-[-0.025em] text-slate-950"
+                            >
+                                Complete your payment
+                            </div>
+                            <div className="mt-1 text-xs text-slate-500">
+                                Waiting for confirmation from UniFi
+                            </div>
+                        </div>
+                        <div className="inline-flex flex-none items-center gap-1.5 rounded-full border border-violet-200 bg-white px-2.5 py-1.5 text-xs font-extrabold text-violet-800 shadow-sm">
+                            <i className="bi bi-clock" aria-hidden="true"></i>
+                            <span className="tabular-nums">
                                 {formatMmSs(secondsLeft)}
                             </span>
                         </div>
                     </div>
-
-                    <button
-                        className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 cursor-pointer"
-                        onClick={onClose}
-                    >
-                        Close
-                    </button>
                 </div>
 
-                <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <div className="text-sm font-bold text-slate-900">
-                        {statusText}
+                <div className="mt-4 flex gap-3 rounded-2xl border border-violet-200 bg-white p-3.5 shadow-sm">
+                    <div className="grid h-9 w-9 flex-none place-items-center rounded-full bg-violet-100 text-base text-violet-700">
+                        <i
+                            className="bi bi-hourglass-split"
+                            aria-hidden="true"
+                        ></i>
                     </div>
-                    <div className="mt-1 text-xs text-slate-500">
-                        You can keep the payment tab open, then come back here
-                        to check the status.
+                    <div className="min-w-0 pt-0.5">
+                        <div className="text-sm font-extrabold text-slate-950">
+                            {statusText}
+                        </div>
+                        <div className="mt-1 text-xs leading-relaxed text-slate-500">
+                            Keep the UniFi payment tab open, then return here to
+                            check the status.
+                        </div>
                     </div>
                 </div>
 
                 {payUrl ? (
-                    <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3">
+                    <div className="mt-3 rounded-2xl border border-violet-100 bg-white p-3 shadow-sm">
                         <div className="flex items-center justify-between gap-3">
-                            <div className="text-[11px] font-extrabold tracking-wide text-slate-700">
-                                Pay link
+                            <div className="flex items-center gap-1.5 text-[11px] font-extrabold tracking-wide text-[#321967]">
+                                <i
+                                    className="bi bi-link-45deg text-sm text-violet-600"
+                                    aria-hidden="true"
+                                ></i>
+                                <span>Pay link</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <a
                                     href={payUrl}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="inline-flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 shadow-sm hover:bg-slate-50"
+                                    className="inline-flex min-h-8 items-center gap-1 rounded-full border border-violet-200 bg-violet-50 px-3 py-1 text-[11px] font-bold text-violet-800 transition hover:border-violet-300 hover:bg-violet-100"
                                 >
                                     <span>Open</span>
                                     <i
-                                        className="bi bi-box-arrow-up-right text-slate-500"
+                                        className="bi bi-box-arrow-up-right"
                                         aria-hidden="true"
                                     ></i>
                                 </a>
                                 <button
                                     type="button"
                                     onClick={copyPayUrl}
-                                    className="rounded-xl border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 shadow-sm hover:bg-slate-50"
+                                    className="inline-flex min-h-8 items-center gap-1 rounded-full border border-violet-200 bg-white px-3 py-1 text-[11px] font-bold text-violet-800 transition hover:border-violet-300 hover:bg-violet-50"
                                 >
-                                    {copied ? "Copied" : "Copy"}
+                                    <i
+                                        className={`bi ${copied ? "bi-check-lg" : "bi-copy"}`}
+                                        aria-hidden="true"
+                                    ></i>
+                                    <span>{copied ? "Copied" : "Copy"}</span>
                                 </button>
                             </div>
                         </div>
-                        <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+                        <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-violet-100 bg-violet-50/60 px-3 py-2.5">
                             <div className="min-w-0 truncate text-[11px] font-semibold text-slate-700">
                                 {payUrlPreview(payUrl)}
                             </div>
-                            <div className="flex-none text-[10px] font-bold text-slate-500">
+                            <div className="flex-none rounded-full bg-white px-2 py-0.5 text-[9px] font-extrabold text-violet-700 ring-1 ring-violet-100">
                                 (hidden)
                             </div>
                         </div>
@@ -618,37 +659,21 @@ export function UnifiWaitDialog({
 
                 <div className="mt-4 flex flex-col gap-2">
                     <button
-                        className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70 active:scale-[0.99] cursor-pointer"
+                        className="w-full cursor-pointer rounded-2xl bg-[#321967] px-4 py-3 text-sm font-extrabold text-white shadow-[0_10px_24px_rgba(50,25,103,0.28)] transition hover:bg-[#281252] disabled:cursor-not-allowed disabled:opacity-70 active:scale-[0.99]"
                         onClick={handleCheck}
                         disabled={isLoading}
                     >
                         <span className="inline-flex items-center justify-center gap-2">
                             {loadingAction === "check" ? (
-                                <svg
-                                    className="h-4 w-4 animate-spin"
-                                    viewBox="0 0 24 24"
+                                <i
+                                    className="bi bi-arrow-repeat animate-spin text-base"
                                     aria-hidden="true"
-                                >
-                                    <circle
-                                        className="opacity-25"
-                                        cx="12"
-                                        cy="12"
-                                        r="10"
-                                        stroke="currentColor"
-                                        strokeWidth="4"
-                                        fill="none"
-                                    />
-                                    <path
-                                        className="opacity-90"
-                                        fill="currentColor"
-                                        d="M4 12a8 8 0 018-8v3a5 5 0 00-5 5H4z"
-                                    />
-                                </svg>
+                                ></i>
                             ) : null}
                             <span>
                                 {loadingAction === "check"
                                     ? "Checking…"
-                                    : "Done!"}
+                                    : "Done"}
                             </span>
                         </span>
                     </button>
@@ -681,7 +706,7 @@ export function UnifiWaitDialog({
                   />
                 </svg>
               ) : null}
-              <span>{loadingAction === "done" ? "Checking…" : "Done!"}</span>
+              <span>{loadingAction === "done" ? "Checking…" : "Done"}</span>
             </span>
           </button> */}
                 </div>
