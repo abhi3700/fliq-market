@@ -26,3 +26,6 @@ dist-ssr
 .env
 .dev.vars
 .wrangler/
+
+# AI
+design-qa.md

@@ -29,7 +29,7 @@ export function create_pay_url(params: CreatePayUrlParams): string {
     const { chain, coin, to_address, amount, session_id, start_ts } = params;
 
     const parts = [
-        "fliqpay",
+        "app/fliqpay",
         encodeURIComponent(chain),
         encodeURIComponent(coin),
         encodeURIComponent(to_address),
@@ -89,7 +89,7 @@ export function create_pay_receipt_url(receipt_id: string): string {
  *   session_id,
  * });
  *
- * // http://0.0.0.0:3334/fliqpay/Ethereum/USDT/0xabc.../12.34/<session_id>
+ * // http://0.0.0.0:3334/app/fliqpay/Ethereum/USDT/0xabc.../12.34/<session_id>
  * window.open(payUrl, "_blank", "noopener,noreferrer");
  * ```
  *

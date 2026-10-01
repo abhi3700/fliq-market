@@ -1,6 +1,6 @@
 # FliQ Market
 
-🛒 A lightweight marketplace demo showcasing **[UniFi](https://www.unifiweb3.com/)** as a seamless payment option — alongside 💳 Debit Card, 💳 Credit Card, and 🇮🇳 UPI — within a modern payment gateway.
+🛒 A lightweight marketplace demo showcasing **[UniFi](https://www.payunifi.com/)** as a seamless payment option — alongside 💳 Debit Card, 💳 Credit Card, and 🇮🇳 UPI — within a modern payment gateway.
 
 <p align="left">
     <img src="./res/checkout_page.png" alt="Checkout Page" width="1000" height="">

@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PaymentMethod } from "../../types";
 import { UnifiAsset, UnifiNetwork } from "./types";
 import unifiIcon from "./assets/unifi-icon.svg";
@@ -7,6 +7,49 @@ import usdcIcon from "./assets/usdc-icon.svg";
 import daiIcon from "./assets/dai-icon.svg";
 import ethereumIcon from "./assets/ethereum-icon.svg";
 import polygonIcon from "./assets/polygon-icon.svg";
+import sepoliaIcon from "./assets/sepolia-icon.svg";
+
+const ASSET_OPTIONS: Array<{
+    value: UnifiAsset;
+    icon: string;
+    color: string;
+}> = [
+    {
+        value: "USDT",
+        icon: usdtIcon,
+        color: "border-emerald-700 bg-emerald-600 text-white",
+    },
+    {
+        value: "USDC",
+        icon: usdcIcon,
+        color: "border-blue-600 bg-blue-500 text-white",
+    },
+    {
+        value: "DAI",
+        icon: daiIcon,
+        color: "border-amber-600 bg-amber-500 text-white",
+    },
+];
+
+const NETWORK_OPTIONS: Array<{
+    value: UnifiNetwork;
+    icon: string;
+}> = [
+    { value: "Ethereum", icon: ethereumIcon },
+    { value: "Polygon", icon: polygonIcon },
+    { value: "Sepolia", icon: sepoliaIcon },
+];
+
+function assetIcon(asset: UnifiAsset): string {
+    return ASSET_OPTIONS.find((option) => option.value === asset)?.icon ?? usdtIcon;
+}
+
+function networkIcon(network: UnifiNetwork): string {
+    return (
+        NETWORK_OPTIONS.find((option) => option.value === network)?.icon ??
+        ethereumIcon
+    );
+}
 
 export function UniFiPayOption({
     method,
@@ -26,224 +69,304 @@ export function UniFiPayOption({
     setNetwork: (n: UnifiNetwork) => void;
 }) {
     const isActive = method === PaymentMethod.Unifi;
+    const [pairSheetOpen, setPairSheetOpen] = useState(false);
+    const [draftAsset, setDraftAsset] = useState<UnifiAsset>(asset);
+    const [draftNetwork, setDraftNetwork] = useState<UnifiNetwork>(network);
+    const closePairSheet = useCallback(() => setPairSheetOpen(false), []);
+
+    function openPairSheet() {
+        if (disableEdits) return;
+        setMethod(PaymentMethod.Unifi);
+        setDraftAsset(asset);
+        setDraftNetwork(network);
+        setPairSheetOpen(true);
+    }
+
+    function commitPair() {
+        setMethod(PaymentMethod.Unifi);
+        setAsset(draftAsset);
+        setNetwork(draftNetwork);
+        setPairSheetOpen(false);
+    }
 
     return (
-        <label
-            className={`flex cursor-pointer items-start gap-4 rounded-2xl border p-4 shadow-sm transition ${
-                isActive
-                    ? "border-blue-500 ring-4 ring-blue-50"
-                    : "border-slate-200 hover:bg-slate-50"
-            }`}
-        >
-            <span className="pt-2.5 leading-none">
-                <input
-                    type="radio"
-                    name="payment"
-                    checked={isActive}
-                    onChange={() => setMethod(PaymentMethod.Unifi)}
-                    disabled={disableEdits}
-                />
-            </span>
+        <>
+            <div
+                className={`flex items-center gap-2 rounded-xl border p-3 shadow-sm transition sm:gap-3 sm:rounded-2xl sm:p-4 ${
+                    disableEdits ? "cursor-default" : "cursor-pointer"
+                } ${
+                    isActive
+                        ? "border-blue-500 ring-2 ring-blue-50 sm:ring-4"
+                        : "border-slate-200 hover:bg-slate-50"
+                }`}
+                onClick={() => {
+                    if (!disableEdits) setMethod(PaymentMethod.Unifi);
+                }}
+            >
+                <span className="leading-none">
+                    <input
+                        type="radio"
+                        name="payment"
+                        aria-label="Pay with UniFi"
+                        checked={isActive}
+                        onChange={() => setMethod(PaymentMethod.Unifi)}
+                        disabled={disableEdits}
+                    />
+                </span>
 
-            <div className="flex flex-col gap-2.5">
-                <div className="flex items-center gap-2">
-                    <UniFiIcon icon={unifiIcon} size={5} />
-                    <span className="text-lg font-extrabold leading-none tracking-tight text-[#321967]">
-                        UniFi
-                    </span>
-                </div>
-
-                <div className="text-xs text-slate-500">
-                    Pay with Stablecoins
-                </div>
-
-                {/* Asset & Network selector (shown like the mock) */}
-                <div
-                    className={`mt-1 border-t border-black/5 pt-3 ${isActive ? "opacity-100" : "opacity-75"}`}
-                >
-                    <div className="w-full max-w-90 rounded-2xl border border-slate-200 bg-white/90 px-3 py-2 shadow-xs">
-                        <div className="mb-2 w-full text-center sm:text-[11px] text-[10px] font-extrabold text-slate-700/80">
-                            Asset &amp; Network
+                <div className="flex min-w-0 flex-1 items-center justify-between gap-1.5 sm:gap-2">
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                            <UniFiIcon icon={unifiIcon} size={5} />
+                            <span className="text-base font-extrabold leading-none tracking-tight text-[#321967] sm:text-lg">
+                                UniFi
+                            </span>
                         </div>
-                        <div className="flex w-full flex-wrap items-center justify-center gap-3">
-                            <PillSelect<UnifiAsset>
-                                value={asset}
-                                onChange={(v) => {
-                                    setMethod(PaymentMethod.Unifi);
-                                    setAsset(v);
-                                }}
-                                disabled={disableEdits}
-                                items={[
-                                    {
-                                        value: "USDT",
-                                        label: "USDT",
-                                        iconSrc: usdtIcon,
-                                        iconAlt: "USDT",
-                                        pillBg: "rgba(34,197,94,0.18)",
-                                    },
-                                    {
-                                        value: "USDC",
-                                        label: "USDC",
-                                        iconSrc: usdcIcon,
-                                        iconAlt: "USDC",
-                                        pillBg: "rgba(37,99,235,0.14)",
-                                    },
-                                    {
-                                        value: "DAI",
-                                        label: "DAI",
-                                        iconSrc: daiIcon,
-                                        iconAlt: "DAI",
-                                        pillBg: "rgba(245,158,11,0.16)",
-                                    },
-                                ]}
-                            />
-                            <PillSelect<UnifiNetwork>
-                                value={network}
-                                onChange={(v) => {
-                                    setMethod(PaymentMethod.Unifi);
-                                    setNetwork(v);
-                                }}
-                                disabled={disableEdits}
-                                items={[
-                                    {
-                                        value: "Ethereum",
-                                        label: "Ethereum",
-                                        iconSrc: ethereumIcon,
-                                        iconAlt: "Ethereum",
-                                        pillBg: "rgba(17,24,39,0.08)",
-                                    },
-                                    {
-                                        value: "Polygon",
-                                        label: "Polygon",
-                                        iconSrc: polygonIcon,
-                                        iconAlt: "Polygon",
-                                        pillBg: "rgba(124,58,237,0.14)",
-                                    },
-                                    {
-                                        value: "Sepolia",
-                                        label: "Sepolia",
-                                        iconSrc: ethereumIcon,
-                                        iconAlt: "Sepolia",
-                                        pillBg: "rgba(17,24,39,0.08)",
-                                    },
-                                ]}
-                            />
+                        <div className="mt-1.5 truncate text-[10px] text-slate-500 sm:mt-2 sm:text-xs">
+                            Pay with Stablecoins
                         </div>
                     </div>
+
+                    <button
+                        type="button"
+                        aria-label={`Change asset and network, ${asset} on ${network}`}
+                        onClick={openPairSheet}
+                        disabled={disableEdits}
+                        className={`flex min-h-11 w-30 flex-none items-center gap-1.5 rounded-full border border-violet-200 bg-violet-50/70 px-2 py-1 text-left shadow-sm transition hover:border-violet-400 hover:bg-violet-50 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 min-[360px]:w-32 sm:min-h-12 sm:w-44 sm:gap-2 sm:py-1.5 ${isActive ? "opacity-100" : "opacity-75"}`}
+                    >
+                        <PairIcon asset={asset} network={network} />
+                        <span className="flex min-w-0 flex-1 flex-col gap-0.5 leading-none">
+                            <strong className="text-[13px] font-extrabold text-slate-950 sm:text-sm">
+                                {asset}
+                            </strong>
+                            <span className="truncate text-[10px] font-bold text-violet-800 sm:text-[11px]">
+                                {network}
+                            </span>
+                        </span>
+                        <i
+                            className="bi bi-chevron-down flex-none text-xs text-slate-500"
+                            aria-hidden="true"
+                        ></i>
+                    </button>
                 </div>
             </div>
-        </label>
+
+            {pairSheetOpen ? (
+                <PaymentPairSheet
+                    asset={draftAsset}
+                    network={draftNetwork}
+                    setAsset={setDraftAsset}
+                    setNetwork={setDraftNetwork}
+                    onClose={closePairSheet}
+                    onDone={commitPair}
+                />
+            ) : null}
+        </>
     );
 }
 
-function PillSelect<T extends string>({
-    value,
-    onChange,
-    items,
-    disabled,
+function PairIcon({
+    asset,
+    network,
 }: {
-    value: T;
-    onChange: (v: T) => void;
-    disabled: boolean;
-    minWidth?: number;
-    items: Array<{
-        value: T;
-        label: string;
-        iconSrc: string;
-        iconAlt: string;
-        pillBg?: string;
-    }>;
+    asset: UnifiAsset;
+    network: UnifiNetwork;
 }) {
-    const [open, setOpen] = useState(false);
-    const rootRef = useRef<HTMLDivElement | null>(null);
+    return (
+        <span className="relative grid h-7 w-7 flex-none place-items-center sm:h-9 sm:w-9">
+            <img
+                src={assetIcon(asset)}
+                alt=""
+                className="h-6 w-6 rounded-full object-contain sm:h-8 sm:w-8"
+            />
+            <span className="absolute -right-0.5 -bottom-0.5 grid h-4 w-4 place-items-center overflow-hidden rounded-[35%] border-2 border-white bg-violet-100 shadow-sm sm:h-4.5 sm:w-4.5">
+                <img
+                    src={networkIcon(network)}
+                    alt=""
+                    className="h-3 w-3 object-contain sm:h-3.5 sm:w-3.5"
+                />
+            </span>
+        </span>
+    );
+}
 
-    function close() {
-        setOpen(false);
-    }
+function PaymentPairSheet({
+    asset,
+    network,
+    setAsset,
+    setNetwork,
+    onClose,
+    onDone,
+}: {
+    asset: UnifiAsset;
+    network: UnifiNetwork;
+    setAsset: (asset: UnifiAsset) => void;
+    setNetwork: (network: UnifiNetwork) => void;
+    onClose: () => void;
+    onDone: () => void;
+}) {
+    const closeButtonRef = useRef<HTMLButtonElement | null>(null);
 
-    const selected = items.find((i) => i.value === value) ?? items[0];
+    useEffect(() => {
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+        closeButtonRef.current?.focus();
+
+        function onKeyDown(event: KeyboardEvent) {
+            if (event.key === "Escape") onClose();
+        }
+
+        window.addEventListener("keydown", onKeyDown);
+        return () => {
+            document.body.style.overflow = previousOverflow;
+            window.removeEventListener("keydown", onKeyDown);
+        };
+    }, [onClose]);
 
     return (
         <div
-            ref={rootRef}
-            className="relative inline-flex outline-none"
-            tabIndex={0}
-            onBlur={(e) => {
-                if (!e.currentTarget.contains(e.relatedTarget as Node | null))
-                    close();
-            }}
+            className="fixed inset-0 z-80 flex items-end justify-center"
+            role="presentation"
         >
             <button
                 type="button"
-                onClick={() => setOpen((v) => !v)}
-                disabled={disabled}
-                className={`inline-flex items-center justify-between gap-2 rounded-full border border-slate-200 sm:px-2 sm:py-1 px-2 py-1 text-sm font-extrabold shadow-sm transition active:scale-[0.99] cursor-pointer ${
-                    disabled
-                        ? "cursor-not-allowed opacity-60"
-                        : "hover:bg-slate-50"
-                }`}
-                style={{
-                    background: selected.pillBg ?? "rgba(255,255,255,0.75)",
-                }}
+                aria-label="Close asset and network picker"
+                className="absolute inset-0 h-full w-full rounded-none border-0 bg-slate-950/60 p-0 backdrop-blur-[3px]"
+                onClick={onClose}
+            />
+
+            <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="unifi-pair-sheet-title"
+                className="relative z-10 max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-[28px] border border-b-0 border-violet-200 bg-white px-5 pt-3 pb-[calc(1.25rem+env(safe-area-inset-bottom))] text-left shadow-[0_-24px_70px_rgba(15,23,42,0.28)] sm:px-6 sm:pb-6"
             >
-                <span className="inline-flex items-center gap-2">
-                    <span className="inline-flex sm:h-5.5 sm:w-5.5 h-4 w-4 flex-none items-center justify-center overflow-hidden rounded-full">
-                        <img
-                            src={selected.iconSrc}
-                            alt={selected.iconAlt}
-                            className="block sm:h-5 sm:w-5 h-4 w-4 rounded-full object-cover"
-                        />
-                    </span>
-                    <span className="text-slate-900 sm:text-sm text-xs">
-                        {selected.label}
-                    </span>
-                </span>
-                <span
+                <div
+                    className="mx-auto mb-5 h-1.5 w-11 rounded-full bg-slate-300"
                     aria-hidden="true"
-                    className={`font-black text-slate-700 transition-transform ${open ? "rotate-180" : ""}`}
-                >
-                    ▾
-                </span>
-            </button>
+                />
 
-            {open ? (
-                <div className="absolute left-0 top-10 z-20 w-40 overflow-hidden rounded-2xl border border-slate-200 bg-white/95 shadow-xl">
-                    {items.map((it) => {
-                        const active = it.value === value;
-                        return (
-                            <button
-                                key={it.value}
-                                type="button"
-                                onClick={() => {
-                                    onChange(it.value);
-                                    close();
-                                }}
-                                className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm font-extrabold text-slate-900 hover:bg-slate-50 cursor-pointer ${
-                                    active ? "bg-slate-900/5" : ""
-                                }
-                }`}
-                            >
-                                <span className="flex items-center gap-2">
-                                    <span className="inline-flex sm:h-5.5 sm:w-5.5 h-4 w-4 flex-none items-center justify-center overflow-hidden rounded-full">
-                                        <img
-                                            src={it.iconSrc}
-                                            alt={it.iconAlt}
-                                            className="block sm:h-5.5 sm:w-5.5 h-4 w-4 rounded-full object-cover"
-                                        />
-                                    </span>
-                                    <span className="sm:text-sm text-xs">
-                                        {it.label}
-                                    </span>
-                                </span>
-
-                                {active ? (
-                                    <span aria-hidden="true">✓</span>
-                                ) : null}
-                            </button>
-                        );
-                    })}
+                <div className="mb-7 flex items-start justify-between gap-4">
+                    <div>
+                        <h2
+                            id="unifi-pair-sheet-title"
+                            className="m-0 text-xl leading-tight font-black tracking-[-0.035em] text-slate-950 sm:text-2xl"
+                        >
+                            Select the asset &amp; network
+                        </h2>
+                        <p className="mt-2 mb-0 text-sm leading-relaxed text-slate-500">
+                            Choose the stablecoin and network you want to use.
+                        </p>
+                    </div>
+                    <button
+                        ref={closeButtonRef}
+                        type="button"
+                        aria-label="Close asset and network picker"
+                        onClick={onClose}
+                        className="grid h-10 w-10 flex-none place-items-center rounded-full border border-slate-300 bg-white p-0 text-lg text-slate-800 transition hover:border-violet-400 hover:bg-violet-50 active:scale-95"
+                    >
+                        <i className="bi bi-x-lg" aria-hidden="true"></i>
+                    </button>
                 </div>
-            ) : null}
+
+                <div>
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                        <h3 className="m-0 text-base font-extrabold text-slate-950">
+                            Assets
+                        </h3>
+                        <span className="text-sm text-slate-500">Stablecoins</span>
+                    </div>
+                    <div
+                        className="flex flex-wrap items-center gap-2.5"
+                        aria-label="Available stablecoins"
+                    >
+                        {ASSET_OPTIONS.map((option) => {
+                            const selected = asset === option.value;
+                            return (
+                                <button
+                                    key={option.value}
+                                    type="button"
+                                    aria-pressed={selected}
+                                    onClick={() => setAsset(option.value)}
+                                    className={`flex min-h-10 items-center gap-2 rounded-full border px-2.5 py-1 text-sm font-extrabold shadow-sm transition hover:-translate-y-0.5 ${option.color} ${
+                                        selected
+                                            ? "ring-2 ring-blue-600 ring-offset-2"
+                                            : ""
+                                    }`}
+                                >
+                                    <img
+                                        src={option.icon}
+                                        alt=""
+                                        className="h-7 w-7 rounded-full object-contain"
+                                    />
+                                    <span>{option.value}</span>
+                                    {selected ? (
+                                        <i
+                                            className="bi bi-check-circle-fill text-sm"
+                                            aria-hidden="true"
+                                        ></i>
+                                    ) : null}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <div className="my-6 h-px bg-slate-200" />
+
+                <div>
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                        <h3 className="m-0 text-base font-extrabold text-slate-950">
+                            Networks
+                        </h3>
+                        <span className="text-sm text-slate-500">Select network</span>
+                    </div>
+                    <div
+                        className="grid grid-cols-2 gap-2.5"
+                        aria-label="Available networks"
+                    >
+                        {NETWORK_OPTIONS.map((option) => {
+                            const selected = network === option.value;
+                            return (
+                                <button
+                                    key={option.value}
+                                    type="button"
+                                    aria-pressed={selected}
+                                    onClick={() => setNetwork(option.value)}
+                                    className={`flex min-h-14 min-w-0 items-center gap-3 rounded-xl border px-3 py-2 text-left text-sm font-extrabold text-slate-950 shadow-sm transition hover:-translate-y-0.5 hover:border-violet-400 ${
+                                        selected
+                                            ? "border-2 border-blue-600 bg-blue-50 ring-1 ring-blue-200"
+                                            : "border-slate-200 bg-slate-50"
+                                    }`}
+                                >
+                                    <img
+                                        src={option.icon}
+                                        alt=""
+                                        className="h-7 w-7 flex-none object-contain"
+                                    />
+                                    <span className="min-w-0 flex-1 truncate">
+                                        {option.value}
+                                    </span>
+                                    {selected ? (
+                                        <i
+                                            className="bi bi-check-circle-fill flex-none text-blue-700"
+                                            aria-hidden="true"
+                                        ></i>
+                                    ) : null}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <button
+                    type="button"
+                    onClick={onDone}
+                    className="mt-7 min-h-12 w-full rounded-2xl border border-emerald-400 bg-emerald-600 px-4 py-3 text-sm font-extrabold tracking-[0.08em] text-white shadow-[0_10px_24px_rgba(5,150,105,0.24)] transition hover:bg-emerald-700 active:scale-[0.99]"
+                >
+                    Done
+                </button>
+            </section>
         </div>
     );
 }
@@ -352,6 +475,17 @@ export function UnifiWaitDialog({
 
     const [copied, setCopied] = useState(false);
 
+    useEffect(() => {
+        if (!open) return;
+
+        const previousOverflow = document.body.style.overflow;
+        document.body.style.overflow = "hidden";
+
+        return () => {
+            document.body.style.overflow = previousOverflow;
+        };
+    }, [open]);
+
     async function copyPayUrl() {
         if (!payUrl) return;
         try {
@@ -390,17 +524,31 @@ export function UnifiWaitDialog({
     if (!open) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div
-                className="absolute inset-0 bg-black/40"
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+            <button
+                type="button"
+                aria-label="Close payment status sheet"
+                className="absolute inset-0 h-full w-full rounded-none border-0 bg-slate-950/55 p-0 backdrop-blur-[2px]"
                 onClick={onClose}
-                aria-hidden="true"
             />
 
-            <div className="relative w-[92%] max-w-md rounded-2xl border border-slate-200 bg-white p-5 shadow-xl">
+            <section
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="unifi-payment-status-title"
+                className="relative z-10 max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-t-[28px] border border-b-0 border-slate-200 bg-white px-4 pt-3 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-[0_-24px_70px_rgba(15,23,42,0.28)] sm:px-5 sm:pb-5"
+            >
+                <div
+                    className="mx-auto mb-4 h-1.5 w-11 rounded-full bg-slate-300"
+                    aria-hidden="true"
+                />
+
                 <div className="flex items-start justify-between gap-3">
                     <div>
-                        <div className="text-sm font-extrabold tracking-wide text-slate-900">
+                        <div
+                            id="unifi-payment-status-title"
+                            className="text-sm font-extrabold tracking-wide text-slate-900"
+                        >
                             Waiting for payment
                         </div>
                         <div className="mt-1 text-xs text-slate-500">
@@ -537,7 +685,7 @@ export function UnifiWaitDialog({
             </span>
           </button> */}
                 </div>
-            </div>
+            </section>
         </div>
     );
 }

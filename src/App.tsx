@@ -24,18 +24,20 @@ function calcTax(subtotal: number): number {
 }
 
 function FooterDivider() {
-    return <span className="inline-block h-5 w-px rounded bg-black/25" />;
+    return (
+        <span className="inline-block h-4 w-px rounded bg-black/25 sm:h-5" />
+    );
 }
 
 function SiteFooter() {
     return (
         <footer className="border-t border-slate-200 bg-white">
-            <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-5 px-4 py-6">
+            <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-3 px-3 py-4 sm:gap-5 sm:px-4 sm:py-6">
                 <a
-                    href="https://www.unifiweb3.com/"
+                    href="https://payunifi.com/"
                     target="_blank"
                     rel="noreferrer"
-                    className="font-semibold text-[#2563EB] sm:text-base text-sm hover:opacity-80"
+                    className="text-xs font-semibold text-[#2563EB] hover:opacity-80 sm:text-base"
                 >
                     Website
                 </a>
@@ -46,7 +48,7 @@ function SiteFooter() {
                     href="https://linkedin.com/company/unifi-web3"
                     target="_blank"
                     rel="noreferrer"
-                    className="font-semibold text-[#0A66C2] sm:text-base text-sm hover:opacity-80"
+                    className="text-xs font-semibold text-[#0A66C2] hover:opacity-80 sm:text-base"
                 >
                     LinkedIn
                 </a>
@@ -57,7 +59,7 @@ function SiteFooter() {
                     href="https://x.com/UniFi495650"
                     target="_blank"
                     rel="noreferrer"
-                    className="font-semibold text-black sm:text-base text-sm hover:opacity-80"
+                    className="text-xs font-semibold text-black hover:opacity-80 sm:text-base"
                 >
                     X
                 </a>
@@ -68,7 +70,7 @@ function SiteFooter() {
                     href="https://t.me/unifi_channel"
                     target="_blank"
                     rel="noreferrer"
-                    className="font-semibold text-[#229ED9] sm:text-base text-sm hover:opacity-80"
+                    className="text-xs font-semibold text-[#229ED9] hover:opacity-80 sm:text-base"
                 >
                     Telegram
                 </a>
@@ -265,18 +267,18 @@ export default function App() {
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900">
             <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur">
-                <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4">
-                    <div className="flex items-center gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-sm font-extrabold text-white">
+                <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-4 sm:py-4">
+                    <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-xs font-extrabold text-white sm:h-10 sm:w-10 sm:rounded-xl sm:text-sm">
                             M
                         </div>
                         <div>
-                            <div className="text-base font-extrabold tracking-tight">
+                            <div className="text-sm font-extrabold tracking-tight sm:text-base">
                                 {screen === "marketplace"
                                     ? "FliQMarket"
                                     : "Checkout"}
                             </div>
-                            <div className="sm:text-sm text-[10px] text-slate-500">
+                            <div className="text-[9px] text-slate-500 sm:text-sm">
                                 {screen === "marketplace"
                                     ? "Lean marketplace demo"
                                     : "Pay securely (demo)"}
@@ -294,7 +296,7 @@ export default function App() {
                         />
                     ) : (
                         <button
-                            className="rounded-xl border border-slate-200 bg-white sm:px-4 px-3 py-2 sm:text-sm text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 active:scale-[0.99] cursor-pointer"
+                            className="cursor-pointer rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm hover:bg-slate-50 active:scale-[0.99] sm:rounded-xl sm:px-4 sm:py-2 sm:text-sm"
                             onClick={backToMarketplace}
                         >
                             ← Continue shopping
@@ -303,7 +305,7 @@ export default function App() {
                 </div>
             </header>
 
-            <main className="mx-auto w-full max-w-6xl px-4 py-6">
+            <main className="mx-auto w-full max-w-6xl px-2.5 py-3 sm:px-4 sm:py-6">
                 {screen === "marketplace" ? (
                     <MarketplaceView
                         products={filtered}
@@ -446,17 +448,17 @@ function PaymentView({
     const receiptUrl = receiptId ? create_pay_receipt_url(receiptId) : null;
 
     return (
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="text-sm font-extrabold tracking-wide text-slate-900">
+        <div className="grid grid-cols-1 gap-3 sm:gap-5 lg:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:rounded-2xl sm:p-5">
+                <div className="text-[13px] font-extrabold tracking-wide text-slate-900 sm:text-sm">
                     Payment method
                 </div>
 
-                <div className="mt-4 space-y-3">
+                <div className="mt-3 space-y-2 sm:mt-4 sm:space-y-3">
                     <label
-                        className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 shadow-sm transition ${
+                        className={`flex cursor-pointer items-center gap-2.5 rounded-xl border p-3 shadow-sm transition sm:gap-3 sm:rounded-2xl sm:p-4 ${
                             method === PaymentMethod.Debit
-                                ? "border-blue-500 ring-4 ring-blue-50"
+                                ? "border-blue-500 ring-2 ring-blue-50 sm:ring-4"
                                 : "border-slate-200 hover:bg-slate-50"
                         }`}
                     >
@@ -467,20 +469,20 @@ function PaymentView({
                             onChange={() => setMethod(PaymentMethod.Debit)}
                             disabled={disableEdits}
                         />
-                        <div className="flex flex-col gap-1">
-                            <div className="text-sm font-extrabold text-slate-900">
+                        <div className="flex flex-col gap-0.5 sm:gap-1">
+                            <div className="text-[13px] font-extrabold text-slate-900 sm:text-sm">
                                 Debit Card
                             </div>
-                            <div className="text-xs text-slate-500">
+                            <div className="text-[11px] text-slate-500 sm:text-xs">
                                 Pay using debit card
                             </div>
                         </div>
                     </label>
 
                     <label
-                        className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 shadow-sm transition ${
+                        className={`flex cursor-pointer items-center gap-2.5 rounded-xl border p-3 shadow-sm transition sm:gap-3 sm:rounded-2xl sm:p-4 ${
                             method === PaymentMethod.Credit
-                                ? "border-blue-500 ring-4 ring-blue-50"
+                                ? "border-blue-500 ring-2 ring-blue-50 sm:ring-4"
                                 : "border-slate-200 hover:bg-slate-50"
                         }`}
                     >
@@ -491,20 +493,20 @@ function PaymentView({
                             onChange={() => setMethod(PaymentMethod.Credit)}
                             disabled={disableEdits}
                         />
-                        <div className="flex flex-col gap-1">
-                            <div className="text-sm font-extrabold text-slate-900">
+                        <div className="flex flex-col gap-0.5 sm:gap-1">
+                            <div className="text-[13px] font-extrabold text-slate-900 sm:text-sm">
                                 Credit Card
                             </div>
-                            <div className="text-xs text-slate-500">
+                            <div className="text-[11px] text-slate-500 sm:text-xs">
                                 Pay using credit card
                             </div>
                         </div>
                     </label>
 
                     <label
-                        className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-4 shadow-sm transition ${
+                        className={`flex cursor-pointer items-center gap-2.5 rounded-xl border p-3 shadow-sm transition sm:gap-3 sm:rounded-2xl sm:p-4 ${
                             method === PaymentMethod.Upi
-                                ? "border-blue-500 ring-4 ring-blue-50"
+                                ? "border-blue-500 ring-2 ring-blue-50 sm:ring-4"
                                 : "border-slate-200 hover:bg-slate-50"
                         }`}
                     >
@@ -515,11 +517,11 @@ function PaymentView({
                             onChange={() => setMethod(PaymentMethod.Upi)}
                             disabled={disableEdits}
                         />
-                        <div className="flex flex-col gap-1">
-                            <div className="text-sm font-extrabold text-slate-900">
+                        <div className="flex flex-col gap-0.5 sm:gap-1">
+                            <div className="text-[13px] font-extrabold text-slate-900 sm:text-sm">
                                 UPI
                             </div>
-                            <div className="text-xs text-slate-500">
+                            <div className="text-[11px] text-slate-500 sm:text-xs">
                                 Pay using UPI (demo)
                             </div>
                         </div>
@@ -538,7 +540,7 @@ function PaymentView({
 
                 {!isSuccess ? (
                     <button
-                        className="mt-4 w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.99] cursor-pointer"
+                        className="mt-3 w-full cursor-pointer rounded-xl bg-slate-900 px-3 py-2.5 text-[13px] font-extrabold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.99] sm:mt-4 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm"
                         onClick={onPay}
                         disabled={isPaying}
                     >
@@ -574,42 +576,42 @@ function PaymentView({
                 )}
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                <div className="text-sm font-extrabold tracking-wide text-slate-900">
+            <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:rounded-2xl sm:p-5">
+                <div className="text-[13px] font-extrabold tracking-wide text-slate-900 sm:text-sm">
                     Order summary
                 </div>
-                <div className="mt-4 flex items-center gap-4">
+                <div className="mt-3 flex items-center gap-3 sm:mt-4 sm:gap-4">
                     <img
-                        className="h-16 w-16 rounded-xl object-cover"
+                        className="h-14 w-14 rounded-lg object-cover sm:h-16 sm:w-16 sm:rounded-xl"
                         src={selected.imageUrl}
                         alt={selected.title}
                     />
                     <div>
-                        <div className="text-sm font-extrabold text-slate-900">
+                        <div className="text-[13px] font-extrabold text-slate-900 sm:text-sm">
                             {selected.title}
                         </div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-[11px] text-slate-500 sm:text-xs">
                             {formatUsd(selected.priceUsd)} each
                         </div>
                     </div>
                 </div>
-                <div className="mt-5 flex items-center justify-between">
-                    <div className="text-xs font-semibold text-slate-500">
+                <div className="mt-4 flex items-center justify-between sm:mt-5">
+                    <div className="text-[11px] font-semibold text-slate-500 sm:text-xs">
                         Quantity
                     </div>
                     <div className="flex items-center gap-2">
                         <button
-                            className="h-9 w-9 rounded-xl border border-slate-200 bg-white text-base font-extrabold text-slate-800 shadow-sm hover:bg-slate-50 disabled:opacity-60"
+                            className="h-8 w-8 rounded-lg border border-slate-200 bg-white text-sm font-extrabold text-slate-800 shadow-sm hover:bg-slate-50 disabled:opacity-60 sm:h-9 sm:w-9 sm:rounded-xl sm:text-base"
                             onClick={() => setQty(Math.max(1, qty - 1))}
                             disabled={disableEdits}
                         >
                             −
                         </button>
-                        <div className="min-w-10 text-center text-sm font-extrabold">
+                        <div className="min-w-8 text-center text-[13px] font-extrabold sm:min-w-10 sm:text-sm">
                             {qty}
                         </div>
                         <button
-                            className="h-9 w-9 rounded-xl border border-slate-200 bg-white text-base font-extrabold text-slate-800 shadow-sm hover:bg-slate-50 disabled:opacity-60"
+                            className="h-8 w-8 rounded-lg border border-slate-200 bg-white text-sm font-extrabold text-slate-800 shadow-sm hover:bg-slate-50 disabled:opacity-60 sm:h-9 sm:w-9 sm:rounded-xl sm:text-base"
                             onClick={() => setQty(qty + 1)}
                             disabled={disableEdits}
                         >
@@ -617,40 +619,46 @@ function PaymentView({
                         </button>
                     </div>
                 </div>
-                <div className="mt-5 space-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-                    <div className="flex items-center justify-between text-sm">
+                <div className="mt-4 space-y-1.5 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:mt-5 sm:space-y-2 sm:rounded-2xl sm:p-4">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
                         <div className="text-slate-600">Actual price</div>
                         <div className="font-semibold">
                             {formatUsd(selected.priceUsd)}
                         </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
                         <div className="text-slate-600">Qty</div>
                         <div className="font-semibold">{qty}</div>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
                         <div className="text-slate-600">Subtotal</div>
                         <div className="font-semibold">
                             {formatUsd(pricing.subtotal)}
                         </div>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between text-xs sm:text-sm">
                         <div className="text-slate-600">Tax</div>
                         <div className="font-semibold">
                             {formatUsd(pricing.tax)}
                         </div>
                     </div>
-                    <div className="my-2 h-px w-full bg-slate-200" />
-                    <div className="flex items-center justify-between text-sm font-extrabold">
+                    <div className="my-1.5 h-px w-full bg-slate-200 sm:my-2" />
+                    <div className="flex items-center justify-between text-xs font-extrabold sm:text-sm">
                         <div>Total</div>
                         <div>{formatUsd(pricing.total)}</div>
                     </div>
                 </div>
-                <div className="mt-4 flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs text-blue-800">
-                    <span className="text-sm">ℹ️</span>
-                    <span>
-                        <b>UniFi payments are live.</b> Debit card, credit card
-                        and UPI are demo-only in this marketplace.
+                <div className="mt-3 flex items-start gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-2 text-[11px] text-blue-800 sm:mt-4 sm:gap-2 sm:rounded-xl sm:px-3 sm:text-xs">
+                    <i
+                        className="bi bi-info-circle-fill mt-0.5 flex-none text-sm text-blue-700"
+                        aria-hidden="true"
+                    ></i>
+                    <span className="min-w-0">
+                        <b className="block">UniFi payments are live.</b>
+                        <span className="mt-0.5 block">
+                            Debit card, credit card and UPI are demo-only in this
+                            marketplace.
+                        </span>
                     </span>
                 </div>{" "}
             </div>
