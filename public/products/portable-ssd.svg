@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">Portable solid-state drive</title>
+  <desc id="description">A rugged blue portable SSD with a USB-C cable.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ecfeff"/>
+      <stop offset="1" stop-color="#99f6e4"/>
+    </linearGradient>
+    <linearGradient id="drive" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0e7490"/>
+      <stop offset="1" stop-color="#164e63"/>
+    </linearGradient>
+    <pattern id="texture" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="12" cy="12" r="3" fill="#67e8f9" opacity=".35"/>
+    </pattern>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="26" stdDeviation="22" flood-color="#134e4a" flood-opacity=".24"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="800" fill="url(#background)"/>
+  <ellipse cx="594" cy="686" rx="350" ry="52" fill="#134e4a" opacity=".12"/>
+  <g filter="url(#shadow)">
+    <path d="M450 244c-170-54-300 7-310 144-8 111 79 184 196 183" fill="none" stroke="#0f172a" stroke-width="28" stroke-linecap="round"/>
+    <path d="M132 372l-64-8c-25-3-45 16-45 41v42c0 23 18 42 41 42h75z" fill="#1e293b"/>
+    <rect x="331" y="137" width="535" height="526" rx="76" fill="#a3e635"/>
+    <rect x="357" y="163" width="483" height="474" rx="59" fill="url(#drive)"/>
+    <rect x="357" y="163" width="483" height="474" rx="59" fill="url(#texture)"/>
+    <path d="M776 163h64v127h-64c-25 0-45-20-45-45v-37c0-25 20-45 45-45z" fill="#d9f99d"/>
+    <rect x="507" y="561" width="184" height="22" rx="11" fill="#082f49"/>
+    <text x="598" y="436" fill="#cffafe" font-family="system-ui, sans-serif" font-size="78" font-weight="800" text-anchor="middle">1 TB</text>
+    <text x="598" y="490" fill="#67e8f9" font-family="system-ui, sans-serif" font-size="28" font-weight="600" letter-spacing="8" text-anchor="middle">PORTABLE SSD</text>
+  </g>
+</svg>

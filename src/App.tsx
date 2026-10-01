@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { products } from "./data/products";
 import { PaymentMethod, type Product } from "./types";
 import { formatUsd } from "./utils/money";
@@ -82,6 +82,7 @@ export default function App() {
     const [screen, setScreen] = useState<Screen>("marketplace");
     const [query, setQuery] = useState("");
     const [selected, setSelected] = useState<Product | null>(null);
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     const [qty, setQty] = useState<number>(1);
     const [method, setMethod] = useState<PaymentMethod>(PaymentMethod.Unifi);
@@ -159,6 +160,35 @@ export default function App() {
 
         void loadUniFiRuntimeConfig();
     }, []);
+
+    useEffect(() => {
+        function focusSearch(event: KeyboardEvent) {
+            if (
+                event.key !== "/" ||
+                event.metaKey ||
+                event.ctrlKey ||
+                event.altKey ||
+                screen !== "marketplace"
+            ) {
+                return;
+            }
+
+            const target = event.target;
+            if (
+                target instanceof HTMLElement &&
+                (target.isContentEditable ||
+                    ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))
+            ) {
+                return;
+            }
+
+            event.preventDefault();
+            searchInputRef.current?.focus();
+        }
+
+        window.addEventListener("keydown", focusSearch);
+        return () => window.removeEventListener("keydown", focusSearch);
+    }, [screen]);
 
     async function onUnifiCheckStatus() {
         if (!unifiSessionId) return;
@@ -343,13 +373,23 @@ export default function App() {
                     </div>
 
                     {screen === "marketplace" ? (
-                        <input
-                            className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-300 focus:ring-4 focus:ring-slate-100 sm:mt-0 sm:max-w-md sm:rounded-xl sm:px-4 sm:text-sm"
-                            value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Search products…"
-                            aria-label="Search products"
-                        />
+                        <div className="relative mt-1 w-full sm:mt-0 sm:max-w-md">
+                            <input
+                                ref={searchInputRef}
+                                className="w-full rounded-lg border border-slate-200 bg-white py-2 pr-10 pl-3 text-xs shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-300 focus:ring-4 focus:ring-slate-100 sm:rounded-xl sm:pl-4 sm:text-sm"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Search products…"
+                                aria-label="Search products"
+                                aria-keyshortcuts="/"
+                            />
+                            <kbd
+                                aria-hidden="true"
+                                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-slate-500 shadow-sm sm:text-xs"
+                            >
+                                /
+                            </kbd>
+                        </div>
                     ) : (
                         <button
                             className="cursor-pointer rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm hover:bg-slate-50 active:scale-[0.99] sm:rounded-xl sm:px-4 sm:py-2 sm:text-sm"

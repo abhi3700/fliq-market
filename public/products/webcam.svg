@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">1080p webcam</title>
+  <desc id="description">A compact black webcam with a blue camera lens.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#dbeafe"/>
+      <stop offset="1" stop-color="#67e8f9"/>
+    </linearGradient>
+    <linearGradient id="camera" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#334155"/>
+      <stop offset="1" stop-color="#020617"/>
+    </linearGradient>
+    <radialGradient id="lens">
+      <stop offset="0" stop-color="#bae6fd"/>
+      <stop offset=".25" stop-color="#0ea5e9"/>
+      <stop offset=".65" stop-color="#1e3a8a"/>
+      <stop offset="1" stop-color="#020617"/>
+    </radialGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="190%">
+      <feDropShadow dx="0" dy="30" stdDeviation="26" flood-color="#0c4a6e" flood-opacity=".25"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="800" fill="url(#background)"/>
+  <path d="M0 631c201-75 367-50 523 4 203 70 377 63 677-46v211H0z" fill="#0891b2" opacity=".18"/>
+  <ellipse cx="600" cy="682" rx="350" ry="54" fill="#0c4a6e" opacity=".15"/>
+  <g filter="url(#shadow)">
+    <rect x="262" y="230" width="676" height="300" rx="112" fill="url(#camera)"/>
+    <circle cx="600" cy="380" r="118" fill="#111827" stroke="#64748b" stroke-width="12"/>
+    <circle cx="600" cy="380" r="86" fill="url(#lens)"/>
+    <circle cx="566" cy="346" r="24" fill="#e0f2fe" opacity=".8"/>
+    <circle cx="820" cy="342" r="12" fill="#22c55e"/>
+    <g fill="#64748b">
+      <circle cx="343" cy="350" r="8"/><circle cx="373" cy="350" r="8"/><circle cx="403" cy="350" r="8"/>
+      <circle cx="343" cy="380" r="8"/><circle cx="373" cy="380" r="8"/><circle cx="403" cy="380" r="8"/>
+      <circle cx="343" cy="410" r="8"/><circle cx="373" cy="410" r="8"/><circle cx="403" cy="410" r="8"/>
+    </g>
+    <path d="M470 530h260l62 124H408z" fill="#1e293b"/>
+    <rect x="375" y="638" width="450" height="52" rx="26" fill="#0f172a"/>
+  </g>
+</svg>

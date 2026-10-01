@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">Mechanical keyboard</title>
+  <desc id="description">A compact dark mechanical keyboard with colorful accent keys.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="1" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <linearGradient id="case" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#334155"/>
+      <stop offset="1" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="170%">
+      <feDropShadow dx="0" dy="28" stdDeviation="24" flood-color="#0f172a" flood-opacity=".28"/>
+    </filter>
+    <rect id="key" width="68" height="62" rx="10"/>
+  </defs>
+  <rect width="1200" height="800" fill="url(#background)"/>
+  <ellipse cx="600" cy="664" rx="455" ry="62" fill="#0f172a" opacity=".12"/>
+  <g filter="url(#shadow)" transform="translate(104 170) skewX(-4)">
+    <rect width="992" height="422" rx="42" fill="url(#case)"/>
+    <g fill="#64748b">
+      <use href="#key" x="46" y="46"/><use href="#key" x="128" y="46"/><use href="#key" x="210" y="46"/><use href="#key" x="292" y="46"/><use href="#key" x="374" y="46"/><use href="#key" x="456" y="46"/><use href="#key" x="538" y="46"/><use href="#key" x="620" y="46"/><use href="#key" x="702" y="46"/><use href="#key" x="784" y="46"/><use href="#key" x="866" y="46"/>
+      <use href="#key" x="60" y="122"/><use href="#key" x="142" y="122"/><use href="#key" x="224" y="122"/><use href="#key" x="306" y="122"/><use href="#key" x="388" y="122"/><use href="#key" x="470" y="122"/><use href="#key" x="552" y="122"/><use href="#key" x="634" y="122"/><use href="#key" x="716" y="122"/><use href="#key" x="798" y="122"/>
+      <use href="#key" x="78" y="198"/><use href="#key" x="160" y="198"/><use href="#key" x="242" y="198"/><use href="#key" x="324" y="198"/><use href="#key" x="406" y="198"/><use href="#key" x="488" y="198"/><use href="#key" x="570" y="198"/><use href="#key" x="652" y="198"/><use href="#key" x="734" y="198"/><use href="#key" x="816" y="198"/>
+      <use href="#key" x="46" y="274"/><use href="#key" x="128" y="274"/><use href="#key" x="702" y="274"/><use href="#key" x="784" y="274"/><use href="#key" x="866" y="274"/>
+    </g>
+    <rect x="210" y="274" width="478" height="62" rx="12" fill="#ef4444"/>
+    <rect x="866" y="122" width="82" height="138" rx="12" fill="#ef4444"/>
+    <g fill="#e2e8f0" opacity=".75">
+      <circle cx="80" cy="77" r="5"/><circle cx="162" cy="77" r="5"/><circle cx="244" cy="77" r="5"/><circle cx="326" cy="77" r="5"/><circle cx="408" cy="77" r="5"/><circle cx="490" cy="77" r="5"/><circle cx="572" cy="77" r="5"/><circle cx="654" cy="77" r="5"/><circle cx="736" cy="77" r="5"/><circle cx="818" cy="77" r="5"/><circle cx="900" cy="77" r="5"/>
+    </g>
+  </g>
+</svg>

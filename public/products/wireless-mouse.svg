@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">Wireless mouse</title>
+  <desc id="description">A white ergonomic wireless mouse on a lavender surface.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f5f3ff"/>
+      <stop offset="1" stop-color="#c4b5fd"/>
+    </linearGradient>
+    <linearGradient id="mouse" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#cbd5e1"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="30" stdDeviation="28" flood-color="#312e81" flood-opacity=".28"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="800" fill="url(#background)"/>
+  <ellipse cx="600" cy="681" rx="300" ry="52" fill="#312e81" opacity=".13"/>
+  <g filter="url(#shadow)" transform="rotate(-7 600 405)">
+    <path d="M600 92c-184 0-296 135-296 329 0 186 116 291 296 291s296-105 296-291C896 227 784 92 600 92z" fill="url(#mouse)" stroke="#94a3b8" stroke-width="10"/>
+    <path d="M600 96v267" stroke="#94a3b8" stroke-width="10"/>
+    <path d="M304 380h592" stroke="#94a3b8" stroke-width="8" opacity=".7"/>
+    <rect x="565" y="173" width="70" height="128" rx="35" fill="#334155"/>
+    <rect x="584" y="190" width="32" height="78" rx="16" fill="#64748b"/>
+    <path d="M478 493c68 42 176 42 244 0" fill="none" stroke="#e2e8f0" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="600" cy="585" r="10" fill="#22c55e"/>
+  </g>
+</svg>

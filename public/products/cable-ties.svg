@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">Reusable cable ties</title>
+  <desc id="description">Six colorful reusable cable ties arranged on a light blue background.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e0f2fe"/>
+      <stop offset="1" stop-color="#bae6fd"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#0f172a" flood-opacity=".18"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="800" fill="url(#background)"/>
+  <ellipse cx="600" cy="668" rx="390" ry="58" fill="#0f172a" opacity=".09"/>
+  <g filter="url(#shadow)" fill="none" stroke-linecap="round" stroke-width="48">
+    <path d="M276 535c-78-75-83-198-11-280s195-94 279-28c84 66 107 187 51 278" stroke="#2563eb"/>
+    <path d="M452 558c-57-87-33-206 54-263 87-58 205-34 263 53 43 65 40 149-2 210" stroke="#f97316"/>
+    <path d="M650 546c-33-91 14-193 106-226 91-33 193 14 226 105 18 51 11 106-15 150" stroke="#10b981"/>
+  </g>
+  <g fill="#f8fafc" stroke="#0f172a" stroke-width="12">
+    <rect x="245" y="500" width="110" height="82" rx="22" transform="rotate(18 300 541)"/>
+    <rect x="414" y="516" width="110" height="82" rx="22" transform="rotate(8 469 557)"/>
+    <rect x="619" y="510" width="110" height="82" rx="22" transform="rotate(-8 674 551)"/>
+  </g>
+</svg>

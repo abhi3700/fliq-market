@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">Noise-canceling headphones</title>
+  <desc id="description">Dark over-ear headphones on a soft blue background.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#cffafe"/>
+      <stop offset="1" stop-color="#7dd3fc"/>
+    </linearGradient>
+    <linearGradient id="headset" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#334155"/>
+      <stop offset="1" stop-color="#020617"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="26" stdDeviation="22" flood-color="#0f172a" flood-opacity=".24"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="800" fill="url(#background)"/>
+  <ellipse cx="600" cy="688" rx="330" ry="52" fill="#0f172a" opacity=".12"/>
+  <g filter="url(#shadow)">
+    <path d="M325 410v-61c0-161 123-277 275-277s275 116 275 277v61" fill="none" stroke="#0f172a" stroke-width="70" stroke-linecap="round"/>
+    <path d="M370 346c0-132 103-224 230-224s230 92 230 224" fill="none" stroke="#475569" stroke-width="18" stroke-linecap="round" opacity=".8"/>
+    <rect x="235" y="344" width="220" height="310" rx="96" fill="url(#headset)" transform="rotate(-7 345 499)"/>
+    <rect x="745" y="344" width="220" height="310" rx="96" fill="url(#headset)" transform="rotate(7 855 499)"/>
+    <rect x="281" y="386" width="123" height="226" rx="58" fill="#64748b" opacity=".55" transform="rotate(-7 342 499)"/>
+    <rect x="796" y="386" width="123" height="226" rx="58" fill="#64748b" opacity=".55" transform="rotate(7 858 499)"/>
+    <circle cx="345" cy="501" r="34" fill="#38bdf8" opacity=".65"/>
+    <circle cx="855" cy="501" r="34" fill="#38bdf8" opacity=".65"/>
+  </g>
+</svg>

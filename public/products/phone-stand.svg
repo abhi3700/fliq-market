@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">Foldable phone stand</title>
+  <desc id="description">A compact dark phone stand holding a smartphone on a lavender background.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ede9fe"/>
+      <stop offset="1" stop-color="#c4b5fd"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#38bdf8"/>
+      <stop offset=".55" stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#c026d3"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="25" stdDeviation="22" flood-color="#1e1b4b" flood-opacity=".25"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="800" fill="url(#background)"/>
+  <ellipse cx="615" cy="679" rx="330" ry="52" fill="#312e81" opacity=".14"/>
+  <g filter="url(#shadow)">
+    <path d="M475 626h287l104 62H374z" fill="#0f172a"/>
+    <path d="M550 323h130l91 326H459z" fill="#334155"/>
+    <rect x="420" y="83" width="360" height="525" rx="48" fill="#0f172a" transform="rotate(5 600 346)"/>
+    <rect x="444" y="108" width="312" height="472" rx="30" fill="url(#screen)" transform="rotate(5 600 346)"/>
+    <circle cx="623" cy="118" r="8" fill="#94a3b8"/>
+    <path d="M430 563h357v66c0 22-18 40-40 40H470c-22 0-40-18-40-40z" fill="#1e293b"/>
+    <rect x="554" y="590" width="110" height="16" rx="8" fill="#64748b"/>
+  </g>
+</svg>

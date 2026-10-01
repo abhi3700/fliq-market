@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title description">
+  <title id="title">Smartwatch</title>
+  <desc id="description">A black smartwatch with a colorful health dashboard.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fae8ff"/>
+      <stop offset="1" stop-color="#a5f3fc"/>
+    </linearGradient>
+    <linearGradient id="screen" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#111827"/>
+      <stop offset="1" stop-color="#020617"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="180%">
+      <feDropShadow dx="0" dy="24" stdDeviation="22" flood-color="#312e81" flood-opacity=".25"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="800" fill="url(#background)"/>
+  <ellipse cx="600" cy="696" rx="245" ry="48" fill="#312e81" opacity=".13"/>
+  <g filter="url(#shadow)">
+    <path d="M493 10h214l-24 224H517z" fill="#111827"/>
+    <path d="M517 566h166l24 234H493z" fill="#111827"/>
+    <g fill="#475569">
+      <rect x="570" y="40" width="60" height="26" rx="13"/><rect x="570" y="88" width="60" height="26" rx="13"/><rect x="570" y="136" width="60" height="26" rx="13"/>
+      <rect x="570" y="640" width="60" height="26" rx="13"/><rect x="570" y="688" width="60" height="26" rx="13"/><rect x="570" y="736" width="60" height="26" rx="13"/>
+    </g>
+    <rect x="405" y="184" width="390" height="430" rx="106" fill="#0f172a"/>
+    <rect x="435" y="214" width="330" height="370" rx="80" fill="url(#screen)" stroke="#475569" stroke-width="8"/>
+    <rect x="795" y="324" width="28" height="94" rx="14" fill="#334155"/>
+    <text x="600" y="330" fill="#f8fafc" font-family="system-ui, sans-serif" font-size="78" font-weight="700" text-anchor="middle">10:09</text>
+    <path d="M500 427h52l25-58 48 120 31-68h48" fill="none" stroke="#fb7185" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="511" cy="527" r="18" fill="#22d3ee"/><rect x="544" y="514" width="132" height="26" rx="13" fill="#334155"/>
+  </g>
+</svg>
