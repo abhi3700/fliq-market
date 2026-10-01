@@ -3,7 +3,7 @@
 🛒 A lightweight marketplace demonstrating [UniFi Pay](https://payunifi.com/) alongside card and UPI payment options.
 
 <p align="left">
-    <img src="./res/checkout_page.png" alt="FliQ Market checkout page" width="1000">
+    <img src="./res/screenshots/checkout.png" alt="FliQ Market checkout page" width="1000">
 </p>
 
 This repository is an example integration of [`unifi-pay-widget`](https://github.com/abhi3700/unifi-pay-widget). The widget repository is the primary source for component APIs, security guidance, proxy setup, and payment lifecycle documentation.
