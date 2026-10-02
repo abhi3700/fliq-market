@@ -13,20 +13,26 @@ This repository is an example integration of [`unifi-pay-widget`](https://github
 - React payment components and styles from `unifi-pay-widget`;
 - public merchant configuration from `/api/config`;
 - payment-status requests through the same-origin `/api/unifi` proxy;
+- receipt-finality tracking with an immediate check, 15-minute automatic refresh, and manual
+  refresh control;
 - a server-held UniFi API key that never enters the browser bundle;
 - local Vite and Cloudflare Pages workflows.
 
 ```mermaid
-flowchart LR
-    Browser["Browser checkout"] -->|"Same-origin /api/unifi status request"| Proxy["Merchant server proxy"]
+flowchart TD
+    Browser["Browser checkout"] -->|"Session and receipt-status requests"| Proxy["Merchant server proxy"]
     Secret[("UNIFI_API_KEY<br/>server secret")] -.->|"Added server-side"| Proxy
     Proxy -->|"Authenticated request"| UniFi["UniFi API"]
     Browser -->|"Opens payment URL"| Checkout["UniFi hosted checkout"]
+    UniFi -->|"Receipt ID"| Browser
+    Browser -->|"Immediate, every 15 min, or manual receipt check"| Proxy
+    UniFi -->|"Processing · Confirmed · Finalized<br/>or Failed · Reorged"| Browser
+    Browser -->|"Finalized only"| Order["Confirm order"]
 
     classDef browser fill:#eff6ff,stroke:#2563eb,color:#172554
     classDef server fill:#f0fdf4,stroke:#16a34a,color:#14532d
     classDef secret fill:#fff7ed,stroke:#ea580c,color:#7c2d12
-    class Browser browser
+    class Browser,Order browser
     class Proxy,UniFi,Checkout server
     class Secret secret
 ```
@@ -78,7 +84,20 @@ Copy `.env.template` to `.dev.vars`, set the required values, and run:
 
 ## Payment completion
 
-UniFi temporarily stores the `session_id → receipt_id` mapping in Redis for two hours so the widget can check payment status. That mapping is not a durable merchant order record. Persist the order, session ID, and confirmed receipt ID in the merchant database, and fulfill only after trusted server-side confirmation.
+UniFi temporarily stores the `session_id → receipt_id` mapping in its DB for two hours so the widget
+can check payment status. That mapping is not a durable merchant order record. Persist the order,
+session ID, detected receipt ID, and finality state in the merchant DB, and fulfill only after
+trusted server-side confirmation of `Finalized` pay receipt.
+
+> [!NOTE]
+> A returned receipt ID means that UniFi accepted the payment into its execution flow; it does not
+> mean the payment is finalized on-chain. FliQ Market therefore shows **Order confirmation in
+> progress** for `Processing` and `Confirmed`, and changes to **Order confirmed** only when the
+> receipt reaches `Finalized`. `Failed` and `Reorged` keep the order unconfirmed.
+
+The receipt is checked immediately after detection. Non-terminal states are refreshed automatically
+every 15 minutes to conserve API credits, and the customer can use the refresh icon for an
+immediate check at any time.
 
 ## Deploy to Cloudflare Pages
 
@@ -96,4 +115,4 @@ UniFi temporarily stores the `session_id → receipt_id` mapping in Redis for tw
 ## Live demo
 
 - 🛒 <https://fliqm.pages.dev/>
-- 🧪 Test payments using **Sepolia Testnet**.
+- 🧪 You can try payments with test tokens on **Sepolia Testnet**.
