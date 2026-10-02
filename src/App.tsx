@@ -13,14 +13,38 @@ import {
     UNIFI_PAYMENT_EXPIRY_SECONDS,
     type UniFiAsset,
     type UniFiNetwork,
+    type UniFiPaymentReceipt,
     type UniFiReceiptStatus,
 } from "unifi-pay-widget";
+import { getOrder, listOrders, putOrder } from "./orders/db";
+import {
+    createBrowserOrder,
+    updateOrderReceiptStatus,
+    type BrowserOrder,
+    type StoredPaymentStatus,
+} from "./orders/model";
+import { OrdersView } from "./orders/OrdersView";
+import { PaymentMethodSummary } from "./components/PaymentMethodSummary";
 
-type Screen = "marketplace" | "payment";
+type Screen = "marketplace" | "payment" | "orders";
 
 function calcTax(subtotal: number): number {
     const TAX_RATE = 0.0825; // 8.25% demo
     return subtotal * TAX_RATE;
+}
+
+function sortOrders(orders: BrowserOrder[]): BrowserOrder[] {
+    return [...orders].sort(
+        (left, right) =>
+            new Date(right.createdAt).getTime() -
+            new Date(left.createdAt).getTime(),
+    );
+}
+
+function storageErrorMessage(error: unknown): string {
+    const detail =
+        error instanceof Error ? error.message : "Unknown browser database error.";
+    return `Order history is unavailable: ${detail}`;
 }
 
 function FooterDivider() {
@@ -94,6 +118,13 @@ export default function App() {
     const [receiptId, setReceiptId] = useState<string | null>(null);
     const [receiptStatus, setReceiptStatus] =
         useState<UniFiReceiptStatus | null>(null);
+    const [orders, setOrders] = useState<BrowserOrder[]>([]);
+    const [ordersLoading, setOrdersLoading] = useState(true);
+    const [orderDbError, setOrderDbError] = useState<string | null>(null);
+    const [currentOrderId, setCurrentOrderId] = useState<string | null>(null);
+    const activeOrderIdRef = useRef<string | null>(null);
+    const activeOrderRef = useRef<BrowserOrder | null>(null);
+    const orderWriteQueueRef = useRef<Promise<void>>(Promise.resolve());
     const [unifiWebAppBaseUrl, setUnifiWebAppBaseUrl] = useState<
         string | undefined
     >();
@@ -109,15 +140,46 @@ export default function App() {
         expirySeconds: UNIFI_PAYMENT_EXPIRY_SECONDS,
         closeOnReceipt: true,
         closeOnExpire: true,
-        onReceiptDetected: (nextReceiptId) => {
+        onReceiptDetected: (nextReceiptId, session) => {
             setReceiptId(nextReceiptId);
             setReceiptStatus(null);
             setIsPaying(false);
             setIsSuccess(true);
+            void persistCheckoutOrder("processing", {
+                receiptId: nextReceiptId,
+                sessionId: session.sessionId,
+            });
         },
         onExpired: () => setIsPaying(false),
         onError: (error) => setUnifiConfigError(error.message),
     });
+
+    useEffect(() => {
+        let cancelled = false;
+
+        void listOrders()
+            .then((storedOrders) => {
+                if (cancelled) return;
+                setOrders((current) => {
+                    const merged = new Map(
+                        storedOrders.map((order) => [order.id, order]),
+                    );
+                    current.forEach((order) => merged.set(order.id, order));
+                    return sortOrders([...merged.values()]);
+                });
+                setOrderDbError(null);
+            })
+            .catch((error: unknown) => {
+                if (!cancelled) setOrderDbError(storageErrorMessage(error));
+            })
+            .finally(() => {
+                if (!cancelled) setOrdersLoading(false);
+            });
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     useEffect(() => {
         async function loadUniFiRuntimeConfig() {
@@ -224,6 +286,107 @@ export default function App() {
         return { subtotal, tax, total };
     }, [selected, qty]);
 
+    function ensureActiveOrderId(): string {
+        if (activeOrderIdRef.current) return activeOrderIdRef.current;
+        const id = crypto.randomUUID();
+        activeOrderIdRef.current = id;
+        setCurrentOrderId(id);
+        return id;
+    }
+
+    function updateOrderList(order: BrowserOrder) {
+        setOrders((current) =>
+            sortOrders([order, ...current.filter((item) => item.id !== order.id)]),
+        );
+    }
+
+    function queueOrderWrite(operation: () => Promise<void>): Promise<void> {
+        const write = orderWriteQueueRef.current.then(operation);
+        orderWriteQueueRef.current = write.catch((error: unknown) => {
+            setOrderDbError(storageErrorMessage(error));
+        });
+        return orderWriteQueueRef.current;
+    }
+
+    function persistCheckoutOrder(
+        status: StoredPaymentStatus,
+        identifiers: { receiptId?: string; sessionId?: string } = {},
+    ): Promise<void> {
+        if (!selected || !pricing) return Promise.resolve();
+
+        const orderId = ensureActiveOrderId();
+        const captured = {
+            product: selected,
+            quantity: qty,
+            pricing,
+            method,
+            asset: method === PaymentMethod.Unifi ? unifiAsset : null,
+            network: method === PaymentMethod.Unifi ? unifiNetwork : null,
+        };
+
+        return queueOrderWrite(async () => {
+            const order = createBrowserOrder({
+                id: orderId,
+                createdAt: new Date(),
+                product: captured.product,
+                quantity: captured.quantity,
+                pricing: captured.pricing,
+                payment: {
+                    method: captured.method,
+                    status,
+                    receiptId: identifiers.receiptId ?? null,
+                    sessionId: identifiers.sessionId ?? null,
+                    asset: captured.asset,
+                    network: captured.network,
+                },
+            });
+            activeOrderRef.current = order;
+            await putOrder(order);
+            updateOrderList(order);
+            setOrderDbError(null);
+        });
+    }
+
+    function queueReceiptUpdate(
+        orderId: string,
+        status: UniFiReceiptStatus,
+        receipt: UniFiPaymentReceipt,
+    ): Promise<void> {
+        return queueOrderWrite(async () => {
+            const current =
+                activeOrderIdRef.current === orderId
+                    ? activeOrderRef.current
+                    : await getOrder(orderId);
+            if (!current) return;
+
+            const updated = updateOrderReceiptStatus(current, status, receipt);
+            if (activeOrderIdRef.current === orderId) {
+                activeOrderRef.current = updated;
+            }
+            await putOrder(updated);
+            updateOrderList(updated);
+            setOrderDbError(null);
+        });
+    }
+
+    function handleReceiptStatusChange(
+        status: UniFiReceiptStatus,
+        receipt: UniFiPaymentReceipt,
+    ) {
+        setReceiptStatus(status);
+        const orderId = activeOrderIdRef.current;
+        if (orderId) void queueReceiptUpdate(orderId, status, receipt);
+    }
+
+    function handleStoredOrderReceiptStatus(
+        orderId: string,
+        status: UniFiReceiptStatus,
+        receipt: UniFiPaymentReceipt,
+    ) {
+        if (activeOrderIdRef.current === orderId) setReceiptStatus(status);
+        void queueReceiptUpdate(orderId, status, receipt);
+    }
+
     function startCheckout(p: Product) {
         setSelected(p);
         setQty(1);
@@ -234,6 +397,9 @@ export default function App() {
         setIsSuccess(false);
         setReceiptId(null);
         setReceiptStatus(null);
+        setCurrentOrderId(null);
+        activeOrderIdRef.current = null;
+        activeOrderRef.current = null;
         unifiPayment.reset();
         setScreen("payment");
     }
@@ -242,6 +408,10 @@ export default function App() {
         setScreen("marketplace");
         // keep selection? usually no; but keeping it is also fine.
         // We'll keep selected so user can go back & checkout again quickly if desired.
+    }
+
+    function viewOrders() {
+        setScreen("orders");
     }
 
     async function payNow() {
@@ -275,6 +445,7 @@ export default function App() {
             await new Promise((r) => setTimeout(r, 900));
         }
         // At this point, we are in the non-UniFi path (the UniFi branch returns early).
+        await persistCheckoutOrder("finalized");
         setIsPaying(false);
         setIsSuccess(true);
     }
@@ -317,6 +488,8 @@ export default function App() {
                             >
                                 {screen === "marketplace"
                                     ? "FliQMarket"
+                                    : screen === "orders"
+                                      ? "Your orders"
                                     : isConfirmation
                                       ? confirmationHeaderTitle
                                       : "Checkout"}
@@ -324,6 +497,8 @@ export default function App() {
                             <div className="text-[9px] text-slate-500 sm:text-sm">
                                 {screen === "marketplace"
                                     ? "Lean marketplace demo"
+                                    : screen === "orders"
+                                      ? "Shipment tracking"
                                     : isConfirmation
                                       ? "FliQ Market"
                                       : "Pay securely (demo)"}
@@ -332,22 +507,36 @@ export default function App() {
                     </div>
 
                     {screen === "marketplace" ? (
-                        <div className="relative mt-1 w-full sm:mt-0 sm:max-w-md">
-                            <input
-                                ref={searchInputRef}
-                                className="w-full rounded-lg border border-slate-200 bg-white py-2 pr-10 pl-3 text-xs shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-300 focus:ring-4 focus:ring-slate-100 sm:rounded-xl sm:pl-4 sm:text-sm"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Search products…"
-                                aria-label="Search products"
-                                aria-keyshortcuts="/"
-                            />
-                            <kbd
-                                aria-hidden="true"
-                                className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-slate-500 shadow-sm sm:text-xs"
+                        <div className="mt-1 flex w-full items-center gap-2 sm:mt-0 sm:max-w-xl">
+                            <div className="relative min-w-0 flex-1">
+                                <input
+                                    ref={searchInputRef}
+                                    className="w-full rounded-lg border border-slate-200 bg-white py-2 pr-10 pl-3 text-xs shadow-sm outline-none placeholder:text-slate-400 focus:border-slate-300 focus:ring-4 focus:ring-slate-100 sm:rounded-xl sm:pl-4 sm:text-sm"
+                                    value={query}
+                                    onChange={(e) => setQuery(e.target.value)}
+                                    placeholder="Search products…"
+                                    aria-label="Search products"
+                                    aria-keyshortcuts="/"
+                                />
+                                <kbd
+                                    aria-hidden="true"
+                                    className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 rounded border border-slate-200 bg-slate-50 px-1.5 py-0.5 font-sans text-[10px] font-semibold text-slate-500 shadow-sm sm:text-xs"
+                                >
+                                    /
+                                </kbd>
+                            </div>
+                            <button
+                                className="inline-flex min-h-8 flex-none cursor-pointer items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-[11px] font-extrabold text-slate-700 shadow-sm hover:bg-slate-50 active:scale-[0.99] sm:rounded-xl sm:px-3.5 sm:text-sm"
+                                onClick={viewOrders}
                             >
-                                /
-                            </kbd>
+                                <i className="bi bi-bag" aria-hidden="true" />
+                                <span>Orders</span>
+                                {orders.length > 0 ? (
+                                    <span className="rounded-full bg-slate-900 px-1.5 py-0.5 text-[9px] leading-none text-white sm:text-[10px]">
+                                        {orders.length}
+                                    </span>
+                                ) : null}
+                            </button>
                         </div>
                     ) : (
                         <button
@@ -360,7 +549,9 @@ export default function App() {
                                 className="bi bi-arrow-left"
                                 aria-hidden="true"
                             ></i>
-                            Continue shopping
+                            {screen === "orders"
+                                ? "Browse products"
+                                : "Continue shopping"}
                         </button>
                     )}
                 </div>
@@ -375,6 +566,17 @@ export default function App() {
                     <MarketplaceView
                         products={filtered}
                         onBuy={startCheckout}
+                    />
+                ) : screen === "orders" ? (
+                    <OrdersView
+                        orders={orders}
+                        loading={ordersLoading}
+                        error={orderDbError}
+                        onBrowse={backToMarketplace}
+                        unifiWebAppBaseUrl={unifiWebAppBaseUrl}
+                        onReceiptStatusChange={
+                            handleStoredOrderReceiptStatus
+                        }
                     />
                 ) : (
                     <PaymentView
@@ -395,9 +597,15 @@ export default function App() {
                         unifiWebAppBaseUrl={unifiWebAppBaseUrl}
                         isUniFiConfigured={Boolean(merchantWalletAddress)}
                         unifiConfigError={unifiConfigError}
+                        hasStoredOrder={
+                            currentOrderId !== null &&
+                            orders.some((order) => order.id === currentOrderId)
+                        }
+                        orderDbError={orderDbError}
                         onPay={payNow}
                         onBack={backToMarketplace}
-                        onReceiptStatusChange={setReceiptStatus}
+                        onViewOrders={viewOrders}
+                        onReceiptStatusChange={handleReceiptStatusChange}
                     />
                 )}
             </main>
@@ -443,6 +651,11 @@ function MarketplaceView({
                         <div className="text-xs text-slate-600 sm:text-sm">
                             {p.description}
                         </div>
+                        <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 sm:text-xs">
+                            <i className="bi bi-truck" aria-hidden="true" />
+                            Est. delivery in {p.estimatedDeliveryDays}{" "}
+                            {p.estimatedDeliveryDays === 1 ? "day" : "days"}
+                        </div>
                         <div className="flex items-center justify-between">
                             <div className="text-base font-extrabold sm:text-lg">
                                 {formatUsd(p.priceUsd)}
@@ -479,8 +692,11 @@ function PaymentView({
     unifiWebAppBaseUrl,
     isUniFiConfigured,
     unifiConfigError,
+    hasStoredOrder,
+    orderDbError,
     onPay,
     onBack,
+    onViewOrders,
     onReceiptStatusChange,
 }: {
     selected: Product | null;
@@ -500,9 +716,15 @@ function PaymentView({
     unifiWebAppBaseUrl?: string;
     isUniFiConfigured: boolean;
     unifiConfigError: string | null;
+    hasStoredOrder: boolean;
+    orderDbError: string | null;
     onPay: () => void;
     onBack: () => void;
-    onReceiptStatusChange: (status: UniFiReceiptStatus) => void;
+    onViewOrders: () => void;
+    onReceiptStatusChange: (
+        status: UniFiReceiptStatus,
+        receipt: UniFiPaymentReceipt,
+    ) => void;
 }) {
     if (!selected || !pricing) {
         return (
@@ -537,7 +759,10 @@ function PaymentView({
                 receiptId={receiptId}
                 receiptStatus={receiptStatus}
                 unifiWebAppBaseUrl={unifiWebAppBaseUrl}
+                hasStoredOrder={hasStoredOrder}
+                orderDbError={orderDbError}
                 onBack={onBack}
+                onViewOrders={onViewOrders}
                 onReceiptStatusChange={onReceiptStatusChange}
             />
         );
@@ -680,6 +905,13 @@ function PaymentView({
                         <div className="text-[11px] text-slate-500 sm:text-xs">
                             {formatUsd(selected.priceUsd)} each
                         </div>
+                        <div className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-slate-500 sm:text-xs">
+                            <i className="bi bi-truck" aria-hidden="true" />
+                            Est. delivery in {selected.estimatedDeliveryDays}{" "}
+                            {selected.estimatedDeliveryDays === 1
+                                ? "day"
+                                : "days"}
+                        </div>
                     </div>
                 </div>
                 <div className="mt-4 flex items-center justify-between sm:mt-5">
@@ -763,7 +995,10 @@ function PaymentSuccessView({
     receiptId,
     receiptStatus,
     unifiWebAppBaseUrl,
+    hasStoredOrder,
+    orderDbError,
     onBack,
+    onViewOrders,
     onReceiptStatusChange,
 }: {
     selected: Product;
@@ -775,8 +1010,14 @@ function PaymentSuccessView({
     receiptId: string | null;
     receiptStatus: UniFiReceiptStatus | null;
     unifiWebAppBaseUrl?: string;
+    hasStoredOrder: boolean;
+    orderDbError: string | null;
     onBack: () => void;
-    onReceiptStatusChange: (status: UniFiReceiptStatus) => void;
+    onViewOrders: () => void;
+    onReceiptStatusChange: (
+        status: UniFiReceiptStatus,
+        receipt: UniFiPaymentReceipt,
+    ) => void;
 }) {
     const isUniFiPayment = method === PaymentMethod.Unifi;
     const isUniFiFinalized =
@@ -785,21 +1026,13 @@ function PaymentSuccessView({
         isUniFiPayment &&
         (receiptStatus === "Failed" || receiptStatus === "Reorged");
     const isOrderConfirmed = !isUniFiPayment || isUniFiFinalized;
-    const paymentMethodLabel =
-        method === PaymentMethod.Debit
-            ? "Debit Card"
-            : method === PaymentMethod.Credit
-              ? "Credit Card"
-              : method === PaymentMethod.Upi
-                ? "UPI"
-                : "UniFi";
     const statusTitle = isOrderConfirmed
         ? "Payment successful"
         : isUniFiUnsuccessful
           ? "Payment not finalized"
           : "Order confirmation in progress";
     const statusDescription = isOrderConfirmed
-        ? "Your order is confirmed."
+        ? "Your order is confirmed and is now being prepared."
         : receiptStatus === "Confirmed"
           ? "Your payment is confirmed on-chain and is now waiting for finality."
           : isUniFiUnsuccessful
@@ -867,6 +1100,16 @@ function PaymentSuccessView({
                             <div className="mt-0.5 text-[11px] text-slate-500 sm:text-sm">
                                 {formatUsd(selected.priceUsd)} each
                             </div>
+                            <div className="mt-1 flex items-center gap-1 text-[10px] font-semibold text-slate-500 sm:text-xs">
+                                <i className="bi bi-truck" aria-hidden="true" />
+                                {isOrderConfirmed
+                                    ? "Dispatches after 5 min preparation"
+                                    : `Est. delivery ${selected.estimatedDeliveryDays} ${
+                                          selected.estimatedDeliveryDays === 1
+                                              ? "day"
+                                              : "days"
+                                      } after finality`}
+                            </div>
                         </div>
                     </div>
 
@@ -899,40 +1142,19 @@ function PaymentSuccessView({
                         Payment details
                     </h2>
 
-                    <div className="mt-3 flex items-center gap-2.5 rounded-lg border border-violet-200 bg-violet-50/70 p-2.5 sm:mt-4 sm:gap-4 sm:rounded-2xl sm:p-4">
-                        {isUniFiPayment ? (
-                            <img
-                                className="h-9 w-9 flex-none rounded-full object-cover sm:h-12 sm:w-12"
-                                src="/unifi-icon.svg"
-                                alt="UniFi"
-                            />
-                        ) : (
-                            <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-slate-900 text-base text-white sm:h-12 sm:w-12 sm:text-lg">
-                                <i
-                                    className={`bi ${
-                                        method === PaymentMethod.Upi
-                                            ? "bi-phone"
-                                            : "bi-credit-card"
-                                    }`}
-                                    aria-hidden="true"
-                                ></i>
-                            </div>
-                        )}
-                        <div className="min-w-0">
-                            <div className="text-xs font-extrabold text-slate-950 sm:text-base">
-                                {isUniFiUnsuccessful
-                                    ? `Attempted with ${paymentMethodLabel}`
-                                    : isUniFiPayment && !isUniFiFinalized
-                                      ? `Submitted with ${paymentMethodLabel}`
-                                      : `Paid with ${paymentMethodLabel}`}
-                            </div>
-                            <div className="mt-0.5 text-[11px] text-slate-500 sm:text-sm">
-                                {isUniFiPayment
-                                    ? `${unifiAsset} · ${unifiNetwork}`
-                                    : "Demo payment"}
-                            </div>
-                        </div>
-                    </div>
+                    <PaymentMethodSummary
+                        className="mt-3 sm:mt-4"
+                        method={method}
+                        status={
+                            isUniFiUnsuccessful
+                                ? "attempted"
+                                : isUniFiPayment && !isUniFiFinalized
+                                  ? "submitted"
+                                  : "paid"
+                        }
+                        asset={unifiAsset}
+                        network={unifiNetwork}
+                    />
 
                     {isUniFiPayment && receiptId ? (
                         <UniFiReceiptStatusCard
@@ -943,9 +1165,28 @@ function PaymentSuccessView({
                         />
                     ) : null}
 
+                    {orderDbError ? (
+                        <div
+                            className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] font-semibold text-red-700 sm:mt-4 sm:rounded-xl sm:text-xs"
+                            role="alert"
+                        >
+                            {orderDbError}
+                        </div>
+                    ) : null}
+
                     <div className="mt-3 flex flex-1 flex-col justify-end border-t border-slate-200 pt-3 sm:mt-5 sm:pt-5">
+                        {hasStoredOrder ? (
+                            <button
+                                className="inline-flex min-h-10 w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-3 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:scale-[0.99] sm:min-h-11 sm:rounded-xl sm:px-4 sm:py-3 sm:text-base"
+                                onClick={onViewOrders}
+                            >
+                                <i className="bi bi-truck" aria-hidden="true" />
+                                Track order
+                            </button>
+                        ) : null}
+
                         <button
-                            className="inline-flex min-h-10 w-full cursor-pointer items-center justify-center rounded-lg bg-blue-600 px-3 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:scale-[0.99] sm:min-h-11 sm:rounded-xl sm:px-4 sm:py-3 sm:text-base"
+                            className={`${hasStoredOrder ? "mt-2" : ""} inline-flex min-h-10 w-full cursor-pointer items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-xs font-extrabold text-slate-700 shadow-sm transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-600 active:scale-[0.99] sm:min-h-11 sm:rounded-xl sm:px-4 sm:py-3 sm:text-base`}
                             onClick={onBack}
                         >
                             Continue shopping

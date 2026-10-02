@@ -7,6 +7,7 @@ export const products: Product[] = [
     description: "Six adjustable ties for tidy desk cables.",
     priceUsd: 1.29,
     imageUrl: "/products/cable-ties.svg",
+    estimatedDeliveryDays: 1,
   },
   {
     id: "p8",
@@ -14,6 +15,7 @@ export const products: Product[] = [
     description: "Three soft microfiber cloths for any display.",
     priceUsd: 3.49,
     imageUrl: "/products/screen-cloths.svg",
+    estimatedDeliveryDays: 1,
   },
   {
     id: "p9",
@@ -21,6 +23,7 @@ export const products: Product[] = [
     description: "Pocket-size stand with two viewing angles.",
     priceUsd: 5.79,
     imageUrl: "/products/phone-stand.svg",
+    estimatedDeliveryDays: 2,
   },
   {
     id: "p1",
@@ -28,6 +31,7 @@ export const products: Product[] = [
     description: "Comfort fit, punchy bass, 30h battery.",
     priceUsd: 129.99,
     imageUrl: "/products/headphones.svg",
+    estimatedDeliveryDays: 3,
   },
   {
     id: "p2",
@@ -35,6 +39,7 @@ export const products: Product[] = [
     description: "Tactile switches, RGB, hot-swappable.",
     priceUsd: 89.0,
     imageUrl: "/products/keyboard.svg",
+    estimatedDeliveryDays: 3,
   },
   {
     id: "p3",
@@ -42,6 +47,7 @@ export const products: Product[] = [
     description: "Heart-rate, sleep tracking, GPS.",
     priceUsd: 149.5,
     imageUrl: "/products/smartwatch.svg",
+    estimatedDeliveryDays: 4,
   },
   {
     id: "p4",
@@ -49,6 +55,7 @@ export const products: Product[] = [
     description: "Fast transfers, rugged casing.",
     priceUsd: 99.99,
     imageUrl: "/products/portable-ssd.svg",
+    estimatedDeliveryDays: 2,
   },
   {
     id: "p5",
@@ -56,6 +63,7 @@ export const products: Product[] = [
     description: "Ergonomic, silent clicks, USB-C.",
     priceUsd: 29.99,
     imageUrl: "/products/wireless-mouse.svg",
+    estimatedDeliveryDays: 2,
   },
   {
     id: "p6",
@@ -63,5 +71,6 @@ export const products: Product[] = [
     description: "Auto-focus, low-light correction.",
     priceUsd: 49.99,
     imageUrl: "/products/webcam.svg",
+    estimatedDeliveryDays: 3,
   },
 ];

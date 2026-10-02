@@ -4,6 +4,7 @@ export type Product = {
   description: string;
   priceUsd: number;
   imageUrl: string;
+  estimatedDeliveryDays: number;
 };
 
 export const PaymentMethod = {

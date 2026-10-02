@@ -15,6 +15,7 @@ This repository is an example integration of [`unifi-pay-widget`](https://github
 - payment-status requests through the same-origin `/api/unifi` proxy;
 - library-owned receipt-finality tracking with an immediate check, 15-minute automatic refresh,
   and manual refresh control;
+- browser-local order history and timestamp-based shipment tracking with IndexedDB;
 - a server-held UniFi API key that never enters the browser bundle;
 - local Vite and Cloudflare Pages workflows.
 
@@ -101,6 +102,19 @@ immediate check at any time. FliQ Market imports this lifecycle and UI from
 `UniFiReceiptStatusCard`; it keeps only order-specific confirmation wording and state. Once the
 receipt becomes terminal, the card removes the refresh action so customers cannot spend merchant
 API credits on redundant checks.
+
+## Local order and shipment tracking
+
+Completed demo checkouts and detected UniFi receipts are stored in the browser's IndexedDB. This is
+intentionally local demo data: it stays on the same browser profile and is not a replacement for a
+merchant-side order database. Pending UniFi orders resume receipt-finality checks when the Orders
+page is opened.
+
+Each product includes an estimated delivery duration of at least one day. Once payment is finalized,
+the order is **Preparing** for five minutes, changes to **Dispatched**, and becomes **Delivered** when
+its product-specific delivery deadline passes. These states are derived from persisted timestamps,
+so reopening the app after a timer elapsed immediately shows the correct status without requiring a
+background browser task.
 
 ## Deploy to Cloudflare Pages
 
