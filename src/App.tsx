@@ -359,30 +359,48 @@ export default function App() {
         setIsSuccess(true);
     }
 
+    const isConfirmation = screen === "payment" && isSuccess;
+
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900">
             <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur">
                 <div
-                    className={`mx-auto flex max-w-6xl gap-2 px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 ${
+                    className={`mx-auto flex max-w-6xl gap-2 px-3 sm:gap-4 sm:px-4 sm:py-4 ${
+                        isConfirmation ? "py-2" : "py-3"
+                    } ${
                         screen === "marketplace"
                             ? "flex-col items-stretch sm:flex-row sm:items-center sm:justify-between"
                             : "items-center justify-between"
                     }`}
                 >
                     <div className="flex items-center gap-2 sm:gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-xs font-extrabold text-white sm:h-10 sm:w-10 sm:rounded-xl sm:text-sm">
+                        <div
+                            className={`flex items-center justify-center rounded-lg bg-slate-900 font-extrabold text-white sm:h-10 sm:w-10 sm:rounded-xl sm:text-sm ${
+                                isConfirmation
+                                    ? "h-7 w-7 text-[11px]"
+                                    : "h-8 w-8 text-xs"
+                            }`}
+                        >
                             M
                         </div>
                         <div>
-                            <div className="text-sm font-extrabold tracking-tight sm:text-base">
+                            <div
+                                className={`font-extrabold tracking-tight sm:text-base ${
+                                    isConfirmation ? "text-[13px]" : "text-sm"
+                                }`}
+                            >
                                 {screen === "marketplace"
                                     ? "FliQMarket"
-                                    : "Checkout"}
+                                    : isConfirmation
+                                      ? "Order confirmed"
+                                      : "Checkout"}
                             </div>
                             <div className="text-[9px] text-slate-500 sm:text-sm">
                                 {screen === "marketplace"
                                     ? "Lean marketplace demo"
-                                    : "Pay securely (demo)"}
+                                    : isConfirmation
+                                      ? "FliQ Market"
+                                      : "Pay securely (demo)"}
                             </div>
                         </div>
                     </div>
@@ -407,16 +425,26 @@ export default function App() {
                         </div>
                     ) : (
                         <button
-                            className="cursor-pointer rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm hover:bg-slate-50 active:scale-[0.99] sm:rounded-xl sm:px-4 sm:py-2 sm:text-sm"
+                            className={`cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-700 shadow-sm hover:bg-slate-50 active:scale-[0.99] sm:rounded-xl sm:px-4 sm:py-2 sm:text-sm ${
+                                isConfirmation ? "hidden sm:inline-flex" : "inline-flex"
+                            }`}
                             onClick={backToMarketplace}
                         >
-                            ← Continue shopping
+                            <i
+                                className="bi bi-arrow-left"
+                                aria-hidden="true"
+                            ></i>
+                            Continue shopping
                         </button>
                     )}
                 </div>
             </header>
 
-            <main className="mx-auto w-full max-w-6xl px-2.5 py-3 sm:px-4 sm:py-6">
+            <main
+                className={`mx-auto w-full max-w-6xl px-2.5 sm:px-4 sm:py-6 ${
+                    isConfirmation ? "py-2.5" : "py-3"
+                }`}
+            >
                 {screen === "marketplace" ? (
                     <MarketplaceView
                         products={filtered}
@@ -564,7 +592,23 @@ function PaymentView({
         );
     }
 
-    const disableEdits = isPaying || isSuccess;
+    if (isSuccess) {
+        return (
+            <PaymentSuccessView
+                selected={selected}
+                qty={qty}
+                method={method}
+                unifiAsset={unifiAsset}
+                unifiNetwork={unifiNetwork}
+                pricing={pricing}
+                receiptId={receiptId}
+                unifiWebAppBaseUrl={unifiWebAppBaseUrl}
+                onBack={onBack}
+            />
+        );
+    }
+
+    const disableEdits = isPaying;
     return (
         <div className="grid grid-cols-1 gap-3 sm:gap-5 lg:grid-cols-2">
             <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:rounded-2xl sm:p-5">
@@ -670,49 +714,18 @@ function PaymentView({
                     </div>
                 ) : null}
 
-                {!isSuccess ? (
-                    <button
-                        className="mt-3 w-full cursor-pointer rounded-xl bg-slate-900 px-3 py-2.5 text-[13px] font-extrabold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.99] sm:mt-4 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm"
-                        onClick={onPay}
-                        disabled={
-                            isPaying ||
-                            (method === PaymentMethod.Unifi &&
-                                !isUniFiConfigured)
-                        }
-                    >
-                        {isPaying
-                            ? "Processing…"
-                            : `Pay ${formatUsd(pricing.total)}`}
-                    </button>
-                ) : (
-                    <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                        <div className="inline-flex items-center rounded-full bg-emerald-600 px-3 py-1 text-xs font-extrabold text-white">
-                            ✓ Payment successful
-                        </div>
-                        <div className="mt-2 text-base font-extrabold text-slate-900">
-                            Your product is on the way.
-                        </div>
-                        <div className="mt-1 text-sm text-slate-600">
-                            Order confirmed for <b>{selected.title}</b>.
-                        </div>
-
-                        {receiptId ? (
-                            <UniFiReceiptLink
-                                receiptId={receiptId}
-                                checkoutBaseUrl={unifiWebAppBaseUrl}
-                            />
-                        ) : null}
-
-                        <div className="mt-3">
-                            <button
-                                className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] cursor-pointer"
-                                onClick={onBack}
-                            >
-                                ← Back to Marketplace
-                            </button>
-                        </div>
-                    </div>
-                )}
+                <button
+                    className="mt-3 w-full cursor-pointer rounded-xl bg-slate-900 px-3 py-2.5 text-[13px] font-extrabold text-white shadow-sm hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60 active:scale-[0.99] sm:mt-4 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-sm"
+                    onClick={onPay}
+                    disabled={
+                        isPaying ||
+                        (method === PaymentMethod.Unifi && !isUniFiConfigured)
+                    }
+                >
+                    {isPaying
+                        ? "Processing…"
+                        : `Pay ${formatUsd(pricing.total)}`}
+                </button>
             </div>
 
             <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:rounded-2xl sm:p-5">
@@ -800,6 +813,171 @@ function PaymentView({
                         </span>
                     </span>
                 </div>{" "}
+            </div>
+        </div>
+    );
+}
+
+function PaymentSuccessView({
+    selected,
+    qty,
+    method,
+    unifiAsset,
+    unifiNetwork,
+    pricing,
+    receiptId,
+    unifiWebAppBaseUrl,
+    onBack,
+}: {
+    selected: Product;
+    qty: number;
+    method: PaymentMethod;
+    unifiAsset: UniFiAsset;
+    unifiNetwork: UniFiNetwork;
+    pricing: { subtotal: number; tax: number; total: number };
+    receiptId: string | null;
+    unifiWebAppBaseUrl?: string;
+    onBack: () => void;
+}) {
+    const isUniFiPayment = method === PaymentMethod.Unifi;
+    const paymentMethodLabel =
+        method === PaymentMethod.Debit
+            ? "Debit Card"
+            : method === PaymentMethod.Credit
+              ? "Credit Card"
+              : method === PaymentMethod.Upi
+                ? "UPI"
+                : "UniFi";
+
+    return (
+        <div className="space-y-2.5 sm:space-y-5">
+            <section
+                className="flex items-center gap-3 rounded-lg border border-emerald-200 bg-emerald-50/80 p-3 sm:gap-6 sm:rounded-2xl sm:p-7"
+                aria-labelledby="payment-success-title"
+            >
+                <div className="flex h-10 w-10 flex-none items-center justify-center rounded-full bg-emerald-600 text-xl text-white shadow-sm sm:h-16 sm:w-16 sm:text-3xl">
+                    <i className="bi bi-check-lg" aria-hidden="true"></i>
+                </div>
+                <div className="min-w-0">
+                    <h1
+                        id="payment-success-title"
+                        className="text-lg font-extrabold tracking-tight text-slate-950 sm:text-3xl"
+                    >
+                        Payment successful
+                    </h1>
+                    <p className="text-xs text-slate-600 sm:mt-1 sm:text-lg">
+                        Your order is confirmed.
+                    </p>
+                </div>
+            </section>
+
+            <div className="grid grid-cols-1 gap-2.5 sm:gap-5 lg:grid-cols-2">
+                <section className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:rounded-2xl sm:p-6">
+                    <h2 className="text-sm font-extrabold text-slate-950 sm:text-lg">
+                        Order summary
+                    </h2>
+
+                    <div className="mt-3 flex items-center gap-2.5 border-b border-slate-200 pb-3 sm:mt-4 sm:gap-4 sm:pb-5">
+                        <img
+                            className="h-14 w-14 rounded-lg object-cover sm:h-20 sm:w-20 sm:rounded-2xl"
+                            src={selected.imageUrl}
+                            alt={selected.title}
+                        />
+                        <div className="min-w-0">
+                            <div className="truncate text-xs font-extrabold text-slate-950 sm:text-base">
+                                {selected.title}
+                            </div>
+                            <div className="mt-0.5 text-[11px] text-slate-500 sm:text-sm">
+                                {formatUsd(selected.priceUsd)} each
+                            </div>
+                        </div>
+                    </div>
+
+                    <dl className="mt-3 space-y-2 text-xs sm:mt-4 sm:space-y-2.5 sm:text-base">
+                        <div className="flex items-center justify-between gap-4">
+                            <dt className="text-slate-600">Quantity</dt>
+                            <dd className="font-semibold text-slate-950">{qty}</dd>
+                        </div>
+                        <div className="flex items-center justify-between gap-4">
+                            <dt className="text-slate-600">Subtotal</dt>
+                            <dd className="font-semibold text-slate-950">
+                                {formatUsd(pricing.subtotal)}
+                            </dd>
+                        </div>
+                        <div className="flex items-center justify-between gap-4">
+                            <dt className="text-slate-600">Tax</dt>
+                            <dd className="font-semibold text-slate-950">
+                                {formatUsd(pricing.tax)}
+                            </dd>
+                        </div>
+                        <div className="flex items-center justify-between gap-4 border-t border-slate-200 pt-2.5 font-extrabold sm:pt-3">
+                            <dt>Total</dt>
+                            <dd>{formatUsd(pricing.total)}</dd>
+                        </div>
+                    </dl>
+                </section>
+
+                <section className="flex flex-col rounded-lg border border-slate-200 bg-white p-3 shadow-sm sm:rounded-2xl sm:p-6">
+                    <h2 className="text-sm font-extrabold text-slate-950 sm:text-lg">
+                        Payment details
+                    </h2>
+
+                    <div className="mt-3 flex items-center gap-2.5 rounded-lg border border-violet-200 bg-violet-50/70 p-2.5 sm:mt-4 sm:gap-4 sm:rounded-2xl sm:p-4">
+                        {isUniFiPayment ? (
+                            <img
+                                className="h-9 w-9 flex-none rounded-full object-cover sm:h-12 sm:w-12"
+                                src="/unifi-icon.svg"
+                                alt="UniFi"
+                            />
+                        ) : (
+                            <div className="flex h-9 w-9 flex-none items-center justify-center rounded-full bg-slate-900 text-base text-white sm:h-12 sm:w-12 sm:text-lg">
+                                <i
+                                    className={`bi ${
+                                        method === PaymentMethod.Upi
+                                            ? "bi-phone"
+                                            : "bi-credit-card"
+                                    }`}
+                                    aria-hidden="true"
+                                ></i>
+                            </div>
+                        )}
+                        <div className="min-w-0">
+                            <div className="text-xs font-extrabold text-slate-950 sm:text-base">
+                                Paid with {paymentMethodLabel}
+                            </div>
+                            <div className="mt-0.5 text-[11px] text-slate-500 sm:text-sm">
+                                {isUniFiPayment
+                                    ? `${unifiAsset} · ${unifiNetwork}`
+                                    : "Demo payment"}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-3 flex flex-1 flex-col justify-end border-t border-slate-200 pt-3 sm:mt-5 sm:pt-5">
+                        <button
+                            className="inline-flex min-h-10 w-full cursor-pointer items-center justify-center rounded-lg bg-blue-600 px-3 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 active:scale-[0.99] sm:min-h-11 sm:rounded-xl sm:px-4 sm:py-3 sm:text-base"
+                            onClick={onBack}
+                        >
+                            Continue shopping
+                        </button>
+
+                        {receiptId ? (
+                            <div className="mt-1 text-center">
+                                <UniFiReceiptLink
+                                    receiptId={receiptId}
+                                    checkoutBaseUrl={unifiWebAppBaseUrl}
+                                    className="!mt-2 !inline-flex !items-center !gap-1.5 !text-xs !font-extrabold !text-indigo-700 hover:!text-indigo-800 sm:!mt-3 sm:!gap-2 sm:!text-sm [&>span:last-child]:hidden"
+                                >
+                                    View UniFi receipt
+                                    <i
+                                        className="bi bi-box-arrow-up-right text-xs"
+                                        aria-hidden="true"
+                                    ></i>
+                                </UniFiReceiptLink>
+                            </div>
+                        ) : null}
+                    </div>
+                </section>
             </div>
         </div>
     );
