@@ -1154,6 +1154,8 @@ function PaymentSuccessView({
                         }
                         asset={unifiAsset}
                         network={unifiNetwork}
+                        receiptId={receiptId}
+                        checkoutBaseUrl={unifiWebAppBaseUrl}
                     />
 
                     {isUniFiPayment && receiptId ? (
