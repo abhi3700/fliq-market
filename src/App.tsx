@@ -8,7 +8,6 @@ import {
     UniFiReceiptLink,
 } from "unifi-pay-widget/react";
 import {
-    UNIFI_PAYMENT_EXPIRY_SECONDS,
     checkUniFiPaymentStatus,
     createUniFiPayment,
     type UniFiAsset,
@@ -16,6 +15,10 @@ import {
 } from "unifi-pay-widget";
 
 type Screen = "marketplace" | "payment";
+
+// FliqPay validates the timestamp embedded in the payment URL against this
+// 15-minute lifetime. Keep the merchant countdown on that same deadline.
+const UNIFI_PAYMENT_EXPIRY_SECONDS = 15 * 60;
 
 function calcTax(subtotal: number): number {
     const TAX_RATE = 0.0825; // 8.25% demo
@@ -96,6 +99,10 @@ export default function App() {
     const [unifiSecondsLeft, setUnifiSecondsLeft] =
         useState<number>(UNIFI_PAYMENT_EXPIRY_SECONDS);
     const [unifiSessionId, setUnifiSessionId] = useState<string | null>(null);
+    const [
+        unifiSessionStartTimestampSeconds,
+        setUnifiSessionStartTimestampSeconds,
+    ] = useState<number | null>(null);
     const [unifiStatusText, setUnifiStatusText] = useState<string>(
         "Waiting for payment…",
     );
@@ -253,7 +260,9 @@ export default function App() {
         setIsSuccess(false);
         setReceiptId(null);
         setUnifiDialogOpen(false);
+        setUnifiSecondsLeft(UNIFI_PAYMENT_EXPIRY_SECONDS);
         setUnifiSessionId(null);
+        setUnifiSessionStartTimestampSeconds(null);
         setUnifiPayUrl(null);
         setUnifiStatusText("Waiting for payment…");
         setScreen("payment");
@@ -268,15 +277,18 @@ export default function App() {
     // NOTE: Use a real deadline-based countdown so the timer matches wall-clock time
     // even if the tab is backgrounded or interval ticks are delayed.
     useEffect(() => {
-        if (!unifiDialogOpen) return;
+        if (!unifiDialogOpen || unifiSessionStartTimestampSeconds === null)
+            return;
 
         const expiresAt =
-            Date.now() + UNIFI_PAYMENT_EXPIRY_SECONDS * 1000;
+            (unifiSessionStartTimestampSeconds +
+                UNIFI_PAYMENT_EXPIRY_SECONDS) *
+            1000;
 
         const syncRemaining = () => {
-            const remaining = Math.max(
-                0,
-                Math.ceil((expiresAt - Date.now()) / 1000),
+            const remaining = Math.min(
+                UNIFI_PAYMENT_EXPIRY_SECONDS,
+                Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000)),
             );
 
             setUnifiSecondsLeft(remaining);
@@ -299,7 +311,7 @@ export default function App() {
         }, 250);
 
         return () => window.clearInterval(id);
-    }, [unifiDialogOpen]);
+    }, [unifiDialogOpen, unifiSessionStartTimestampSeconds]);
 
     async function payNow() {
         if (!selected || !pricing) return;
@@ -318,19 +330,22 @@ export default function App() {
             // TODO: In production, format based on token decimals.
             const amountStr = pricing.total.toFixed(2); // "12.34"
 
-            const { sessionId, payUrl } = createUniFiPayment({
-                network: unifiNetwork,
-                asset: unifiAsset,
-                recipient: merchantWalletAddress,
-                amount: amountStr,
-                checkoutBaseUrl: unifiWebAppBaseUrl,
-            });
+            const { sessionId, payUrl, startTimestampSeconds } =
+                createUniFiPayment({
+                    network: unifiNetwork,
+                    asset: unifiAsset,
+                    recipient: merchantWalletAddress,
+                    amount: amountStr,
+                    checkoutBaseUrl: unifiWebAppBaseUrl,
+                });
 
             setUnifiSessionId(sessionId);
+            setUnifiSessionStartTimestampSeconds(startTimestampSeconds);
+            setUnifiSecondsLeft(UNIFI_PAYMENT_EXPIRY_SECONDS);
             setUnifiPayUrl(payUrl);
             window.open(payUrl, "_blank", "noopener,noreferrer");
 
-            // 2) Show a dialog waiting for payment (auto closes after 20 mins)
+            // Show a dialog until the same 15-minute deadline used by FliqPay.
             setUnifiStatusText("Waiting for payment…");
             setUnifiDialogOpen(true);
             return; // Don't mark success yet; we do it after status becomes "paid"
