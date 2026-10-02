@@ -13,8 +13,8 @@ This repository is an example integration of [`unifi-pay-widget`](https://github
 - React payment components and styles from `unifi-pay-widget`;
 - public merchant configuration from `/api/config`;
 - payment-status requests through the same-origin `/api/unifi` proxy;
-- receipt-finality tracking with an immediate check, 15-minute automatic refresh, and manual
-  refresh control;
+- library-owned receipt-finality tracking with an immediate check, 15-minute automatic refresh,
+  and manual refresh control;
 - a server-held UniFi API key that never enters the browser bundle;
 - local Vite and Cloudflare Pages workflows.
 
@@ -97,7 +97,10 @@ trusted server-side confirmation of `Finalized` pay receipt.
 
 The receipt is checked immediately after detection. Non-terminal states are refreshed automatically
 every 15 minutes to conserve API credits, and the customer can use the refresh icon for an
-immediate check at any time.
+immediate check at any time. FliQ Market imports this lifecycle and UI from
+`UniFiReceiptStatusCard`; it keeps only order-specific confirmation wording and state. Once the
+receipt becomes terminal, the card removes the refresh action so customers cannot spend merchant
+API credits on redundant checks.
 
 ## Deploy to Cloudflare Pages
 

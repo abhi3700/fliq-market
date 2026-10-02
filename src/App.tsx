@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { products } from "./data/products";
 import { PaymentMethod, type Product } from "./types";
 import { formatUsd } from "./utils/money";
@@ -6,47 +6,17 @@ import {
     UniFiPaymentOption,
     UniFiPaymentStatusSheet,
     UniFiReceiptLink,
+    UniFiReceiptStatusCard,
+    useUniFiPayment,
 } from "unifi-pay-widget/react";
 import {
-    checkUniFiPaymentStatus,
-    createUniFiPayment,
+    UNIFI_PAYMENT_EXPIRY_SECONDS,
     type UniFiAsset,
     type UniFiNetwork,
+    type UniFiReceiptStatus,
 } from "unifi-pay-widget";
 
 type Screen = "marketplace" | "payment";
-
-// FliqPay validates the timestamp embedded in the payment URL against this
-// 15-minute lifetime. Keep the merchant countdown on that same deadline.
-const UNIFI_PAYMENT_EXPIRY_SECONDS = 15 * 60;
-const UNIFI_RECEIPT_REFRESH_INTERVAL_MS = 15 * 60 * 1000;
-const UNIFI_RECEIPT_REFRESH_INTERVAL_SECONDS =
-    UNIFI_RECEIPT_REFRESH_INTERVAL_MS / 1000;
-
-type UniFiReceiptStatus =
-    | "Processing"
-    | "Failed"
-    | "Confirmed"
-    | "Finalized"
-    | "Reorged";
-
-const UNIFI_RECEIPT_STATUSES: readonly UniFiReceiptStatus[] = [
-    "Processing",
-    "Failed",
-    "Confirmed",
-    "Finalized",
-    "Reorged",
-];
-
-function isUniFiReceiptStatus(value: unknown): value is UniFiReceiptStatus {
-    return UNIFI_RECEIPT_STATUSES.includes(value as UniFiReceiptStatus);
-}
-
-function formatCountdown(totalSeconds: number): string {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-    return `${minutes}:${String(seconds).padStart(2, "0")}`;
-}
 
 function calcTax(subtotal: number): number {
     const TAX_RATE = 0.0825; // 8.25% demo
@@ -124,29 +94,6 @@ export default function App() {
     const [receiptId, setReceiptId] = useState<string | null>(null);
     const [receiptStatus, setReceiptStatus] =
         useState<UniFiReceiptStatus | null>(null);
-    const [isReceiptStatusChecking, setIsReceiptStatusChecking] =
-        useState(false);
-    const [receiptStatusError, setReceiptStatusError] = useState<string | null>(
-        null,
-    );
-    const [receiptStatusCheckedAt, setReceiptStatusCheckedAt] =
-        useState<Date | null>(null);
-    const [receiptAutoRefreshSecondsLeft, setReceiptAutoRefreshSecondsLeft] =
-        useState(UNIFI_RECEIPT_REFRESH_INTERVAL_SECONDS);
-    const receiptStatusCheckInFlight = useRef(false);
-
-    const [unifiDialogOpen, setUnifiDialogOpen] = useState(false);
-    const [unifiSecondsLeft, setUnifiSecondsLeft] =
-        useState<number>(UNIFI_PAYMENT_EXPIRY_SECONDS);
-    const [unifiSessionId, setUnifiSessionId] = useState<string | null>(null);
-    const [
-        unifiSessionStartTimestampSeconds,
-        setUnifiSessionStartTimestampSeconds,
-    ] = useState<number | null>(null);
-    const [unifiStatusText, setUnifiStatusText] = useState<string>(
-        "Waiting for payment…",
-    );
-    const [unifiPayUrl, setUnifiPayUrl] = useState<string | null>(null);
     const [unifiWebAppBaseUrl, setUnifiWebAppBaseUrl] = useState<
         string | undefined
     >();
@@ -156,6 +103,21 @@ export default function App() {
     const [unifiConfigError, setUnifiConfigError] = useState<string | null>(
         null,
     );
+    const unifiPayment = useUniFiPayment({
+        proxyBaseUrl: "/api/unifi",
+        checkoutBaseUrl: unifiWebAppBaseUrl,
+        expirySeconds: UNIFI_PAYMENT_EXPIRY_SECONDS,
+        closeOnReceipt: true,
+        closeOnExpire: true,
+        onReceiptDetected: (nextReceiptId) => {
+            setReceiptId(nextReceiptId);
+            setReceiptStatus(null);
+            setIsPaying(false);
+            setIsSuccess(true);
+        },
+        onExpired: () => setIsPaying(false),
+        onError: (error) => setUnifiConfigError(error.message),
+    });
 
     useEffect(() => {
         async function loadUniFiRuntimeConfig() {
@@ -237,116 +199,11 @@ export default function App() {
         return () => window.removeEventListener("keydown", focusSearch);
     }, [screen]);
 
-    const refreshUniFiReceiptStatus = useCallback(
-        async (targetReceiptId: string) => {
-            if (receiptStatusCheckInFlight.current) return;
-
-            receiptStatusCheckInFlight.current = true;
-            setIsReceiptStatusChecking(true);
-            setReceiptStatusError(null);
-
-            try {
-                const response = await fetch(
-                    `/api/unifi/payment/onchain/receipt/${encodeURIComponent(targetReceiptId)}`,
-                    {
-                        headers: { Accept: "application/json" },
-                        credentials: "same-origin",
-                    },
-                );
-
-                if (!response.ok) {
-                    const detail = (await response.text()).trim();
-                    let message = detail;
-                    try {
-                        const parsed = JSON.parse(detail) as {
-                            error?: unknown;
-                            message?: unknown;
-                        };
-                        if (typeof parsed.message === "string") {
-                            message = parsed.message;
-                        } else if (typeof parsed.error === "string") {
-                            message = parsed.error;
-                        }
-                    } catch {
-                        // Keep the user-safe plain-text response.
-                    }
-                    throw new Error(
-                        message ||
-                            `Unable to refresh payment status (${response.status}).`,
-                    );
-                }
-
-                const body = (await response.json()) as {
-                    data?: { id?: unknown; status?: unknown };
-                };
-                if (
-                    body.data?.id !== targetReceiptId ||
-                    !isUniFiReceiptStatus(body.data.status)
-                ) {
-                    throw new Error(
-                        "UniFi returned an invalid payment status response.",
-                    );
-                }
-
-                setReceiptStatus(body.data.status);
-            } catch (error) {
-                setReceiptStatusError(
-                    error instanceof Error
-                        ? error.message
-                        : "Unable to refresh payment status.",
-                );
-            } finally {
-                setReceiptStatusCheckedAt(new Date());
-                receiptStatusCheckInFlight.current = false;
-                setIsReceiptStatusChecking(false);
-            }
-        },
-        [],
-    );
-
-    async function onUnifiCheckStatus() {
-        if (!unifiSessionId) return;
-
-        setUnifiStatusText("Checking status…");
-        const r = await checkUniFiPaymentStatus(unifiSessionId, {
-            proxyBaseUrl: "/api/unifi",
-        });
-
-        if (r.state === "paid") {
-            setReceiptId(r.receiptId);
-            setReceiptStatus(null);
-            setReceiptStatusError(null);
-            setReceiptStatusCheckedAt(null);
-            setUnifiStatusText("Payment submitted. Checking finality…");
-            setUnifiDialogOpen(false);
-            setIsPaying(false);
-            setIsSuccess(true);
-            void refreshUniFiReceiptStatus(r.receiptId);
-            return;
-        }
-
-        if (r.state === "failed") {
-            setUnifiStatusText(
-                r.message || "Payment failed. Please try again.",
-            );
-            return;
-        }
-
-        setUnifiStatusText("Still waiting for payment…");
-    }
-
     function closeUnifiDialog() {
         setReceiptId(null);
         setReceiptStatus(null);
-        setReceiptStatusError(null);
-        setReceiptStatusCheckedAt(null);
-        setReceiptAutoRefreshSecondsLeft(
-            UNIFI_RECEIPT_REFRESH_INTERVAL_SECONDS,
-        );
-        setUnifiPayUrl(null);
-        setUnifiDialogOpen(false);
+        unifiPayment.reset();
         setIsPaying(false);
-        setUnifiStatusText("Waiting for payment…");
     }
 
     const filtered = useMemo(() => {
@@ -377,17 +234,7 @@ export default function App() {
         setIsSuccess(false);
         setReceiptId(null);
         setReceiptStatus(null);
-        setReceiptStatusError(null);
-        setReceiptStatusCheckedAt(null);
-        setReceiptAutoRefreshSecondsLeft(
-            UNIFI_RECEIPT_REFRESH_INTERVAL_SECONDS,
-        );
-        setUnifiDialogOpen(false);
-        setUnifiSecondsLeft(UNIFI_PAYMENT_EXPIRY_SECONDS);
-        setUnifiSessionId(null);
-        setUnifiSessionStartTimestampSeconds(null);
-        setUnifiPayUrl(null);
-        setUnifiStatusText("Waiting for payment…");
+        unifiPayment.reset();
         setScreen("payment");
     }
 
@@ -396,91 +243,6 @@ export default function App() {
         // keep selection? usually no; but keeping it is also fine.
         // We'll keep selected so user can go back & checkout again quickly if desired.
     }
-
-    // NOTE: Use a real deadline-based countdown so the timer matches wall-clock time
-    // even if the tab is backgrounded or interval ticks are delayed.
-    useEffect(() => {
-        if (!unifiDialogOpen || unifiSessionStartTimestampSeconds === null)
-            return;
-
-        const expiresAt =
-            (unifiSessionStartTimestampSeconds +
-                UNIFI_PAYMENT_EXPIRY_SECONDS) *
-            1000;
-
-        const syncRemaining = () => {
-            const remaining = Math.min(
-                UNIFI_PAYMENT_EXPIRY_SECONDS,
-                Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000)),
-            );
-
-            setUnifiSecondsLeft(remaining);
-
-            if (remaining === 0) {
-                closeUnifiDialog();
-                return true;
-            }
-
-            return false;
-        };
-
-        // Set immediately so the UI starts from the exact configured duration.
-        if (syncRemaining()) return;
-
-        const id = window.setInterval(() => {
-            if (syncRemaining()) {
-                window.clearInterval(id);
-            }
-        }, 250);
-
-        return () => window.clearInterval(id);
-    }, [unifiDialogOpen, unifiSessionStartTimestampSeconds]);
-
-    const isReceiptAutoRefreshActive =
-        isSuccess &&
-        method === PaymentMethod.Unifi &&
-        Boolean(receiptId) &&
-        receiptStatus !== "Finalized" &&
-        receiptStatus !== "Failed" &&
-        receiptStatus !== "Reorged";
-
-    useEffect(() => {
-        if (!isReceiptAutoRefreshActive || !receiptId) return;
-
-        const interval = window.setInterval(() => {
-            void refreshUniFiReceiptStatus(receiptId);
-        }, UNIFI_RECEIPT_REFRESH_INTERVAL_MS);
-
-        return () => window.clearInterval(interval);
-    }, [
-        isReceiptAutoRefreshActive,
-        receiptId,
-        receiptStatusCheckedAt,
-        refreshUniFiReceiptStatus,
-    ]);
-
-    useEffect(() => {
-        if (!isReceiptAutoRefreshActive) {
-            setReceiptAutoRefreshSecondsLeft(0);
-            return;
-        }
-
-        const refreshDeadline =
-            (receiptStatusCheckedAt?.getTime() ?? Date.now()) +
-            UNIFI_RECEIPT_REFRESH_INTERVAL_MS;
-        const syncCountdown = () => {
-            setReceiptAutoRefreshSecondsLeft(
-                Math.max(
-                    0,
-                    Math.ceil((refreshDeadline - Date.now()) / 1000),
-                ),
-            );
-        };
-
-        syncCountdown();
-        const countdown = window.setInterval(syncCountdown, 1000);
-        return () => window.clearInterval(countdown);
-    }, [isReceiptAutoRefreshActive, receiptStatusCheckedAt]);
 
     async function payNow() {
         if (!selected || !pricing) return;
@@ -499,24 +261,13 @@ export default function App() {
             // TODO: In production, format based on token decimals.
             const amountStr = pricing.total.toFixed(2); // "12.34"
 
-            const { sessionId, payUrl, startTimestampSeconds } =
-                createUniFiPayment({
-                    network: unifiNetwork,
-                    asset: unifiAsset,
-                    recipient: merchantWalletAddress,
-                    amount: amountStr,
-                    checkoutBaseUrl: unifiWebAppBaseUrl,
-                });
-
-            setUnifiSessionId(sessionId);
-            setUnifiSessionStartTimestampSeconds(startTimestampSeconds);
-            setUnifiSecondsLeft(UNIFI_PAYMENT_EXPIRY_SECONDS);
-            setUnifiPayUrl(payUrl);
-            window.open(payUrl, "_blank", "noopener,noreferrer");
-
-            // Show a dialog until the same 15-minute deadline used by FliqPay.
-            setUnifiStatusText("Waiting for payment…");
-            setUnifiDialogOpen(true);
+            const payment = unifiPayment.startPayment({
+                network: unifiNetwork,
+                asset: unifiAsset,
+                recipient: merchantWalletAddress,
+                amount: amountStr,
+            });
+            if (!payment) setIsPaying(false);
             return; // Don't mark success yet; we do it after status becomes "paid"
         } else {
             setIsPaying(true);
@@ -641,35 +392,23 @@ export default function App() {
                         isSuccess={isSuccess}
                         receiptId={receiptId}
                         receiptStatus={receiptStatus}
-                        isReceiptStatusChecking={isReceiptStatusChecking}
-                        receiptStatusError={receiptStatusError}
-                        receiptStatusCheckedAt={receiptStatusCheckedAt}
-                        receiptAutoRefreshSecondsLeft={
-                            receiptAutoRefreshSecondsLeft
-                        }
-                        isReceiptAutoRefreshActive={
-                            isReceiptAutoRefreshActive
-                        }
                         unifiWebAppBaseUrl={unifiWebAppBaseUrl}
                         isUniFiConfigured={Boolean(merchantWalletAddress)}
                         unifiConfigError={unifiConfigError}
                         onPay={payNow}
                         onBack={backToMarketplace}
-                        onRefreshReceiptStatus={() => {
-                            if (receiptId) {
-                                void refreshUniFiReceiptStatus(receiptId);
-                            }
-                        }}
+                        onReceiptStatusChange={setReceiptStatus}
                     />
                 )}
             </main>
 
             <UniFiPaymentStatusSheet
-                open={unifiDialogOpen}
-                secondsLeft={unifiSecondsLeft}
-                statusText={unifiStatusText}
-                payUrl={unifiPayUrl}
-                onCheckStatus={onUnifiCheckStatus}
+                open={unifiPayment.statusOpen}
+                secondsLeft={unifiPayment.secondsLeft}
+                statusText={unifiPayment.statusText}
+                payUrl={unifiPayment.session?.payUrl}
+                checking={unifiPayment.checking}
+                onCheckStatus={unifiPayment.checkStatus}
                 onClose={closeUnifiDialog}
             />
 
@@ -737,17 +476,12 @@ function PaymentView({
     isSuccess,
     receiptId,
     receiptStatus,
-    isReceiptStatusChecking,
-    receiptStatusError,
-    receiptStatusCheckedAt,
-    receiptAutoRefreshSecondsLeft,
-    isReceiptAutoRefreshActive,
     unifiWebAppBaseUrl,
     isUniFiConfigured,
     unifiConfigError,
     onPay,
     onBack,
-    onRefreshReceiptStatus,
+    onReceiptStatusChange,
 }: {
     selected: Product | null;
     qty: number;
@@ -763,17 +497,12 @@ function PaymentView({
     isSuccess: boolean;
     receiptId: string | null;
     receiptStatus: UniFiReceiptStatus | null;
-    isReceiptStatusChecking: boolean;
-    receiptStatusError: string | null;
-    receiptStatusCheckedAt: Date | null;
-    receiptAutoRefreshSecondsLeft: number;
-    isReceiptAutoRefreshActive: boolean;
     unifiWebAppBaseUrl?: string;
     isUniFiConfigured: boolean;
     unifiConfigError: string | null;
     onPay: () => void;
     onBack: () => void;
-    onRefreshReceiptStatus: () => void;
+    onReceiptStatusChange: (status: UniFiReceiptStatus) => void;
 }) {
     if (!selected || !pricing) {
         return (
@@ -807,16 +536,9 @@ function PaymentView({
                 pricing={pricing}
                 receiptId={receiptId}
                 receiptStatus={receiptStatus}
-                isReceiptStatusChecking={isReceiptStatusChecking}
-                receiptStatusError={receiptStatusError}
-                receiptStatusCheckedAt={receiptStatusCheckedAt}
-                receiptAutoRefreshSecondsLeft={
-                    receiptAutoRefreshSecondsLeft
-                }
-                isReceiptAutoRefreshActive={isReceiptAutoRefreshActive}
                 unifiWebAppBaseUrl={unifiWebAppBaseUrl}
                 onBack={onBack}
-                onRefreshReceiptStatus={onRefreshReceiptStatus}
+                onReceiptStatusChange={onReceiptStatusChange}
             />
         );
     }
@@ -1040,14 +762,9 @@ function PaymentSuccessView({
     pricing,
     receiptId,
     receiptStatus,
-    isReceiptStatusChecking,
-    receiptStatusError,
-    receiptStatusCheckedAt,
-    receiptAutoRefreshSecondsLeft,
-    isReceiptAutoRefreshActive,
     unifiWebAppBaseUrl,
     onBack,
-    onRefreshReceiptStatus,
+    onReceiptStatusChange,
 }: {
     selected: Product;
     qty: number;
@@ -1057,14 +774,9 @@ function PaymentSuccessView({
     pricing: { subtotal: number; tax: number; total: number };
     receiptId: string | null;
     receiptStatus: UniFiReceiptStatus | null;
-    isReceiptStatusChecking: boolean;
-    receiptStatusError: string | null;
-    receiptStatusCheckedAt: Date | null;
-    receiptAutoRefreshSecondsLeft: number;
-    isReceiptAutoRefreshActive: boolean;
     unifiWebAppBaseUrl?: string;
     onBack: () => void;
-    onRefreshReceiptStatus: () => void;
+    onReceiptStatusChange: (status: UniFiReceiptStatus) => void;
 }) {
     const isUniFiPayment = method === PaymentMethod.Unifi;
     const isUniFiFinalized =
@@ -1109,33 +821,6 @@ function PaymentSuccessView({
                 section: "border-amber-200 bg-amber-50/80",
                 icon: "bg-amber-500 bi-hourglass-split",
             };
-    const receiptStatusLabel =
-        receiptStatus === "Processing"
-            ? "Payment submitted"
-            : receiptStatus === "Confirmed"
-              ? "Confirmed on-chain"
-              : receiptStatus === "Finalized"
-                ? "Finalized on-chain"
-                : receiptStatus === "Failed"
-                  ? "Payment failed"
-                  : receiptStatus === "Reorged"
-                    ? "Payment reorged"
-                    : "Checking payment finality";
-    const refreshRingRadius = 21;
-    const refreshRingCircumference = 2 * Math.PI * refreshRingRadius;
-    const refreshProgress = isReceiptAutoRefreshActive
-        ? Math.min(
-              1,
-              Math.max(
-                  0,
-                  receiptAutoRefreshSecondsLeft /
-                      UNIFI_RECEIPT_REFRESH_INTERVAL_SECONDS,
-              ),
-          )
-        : 0;
-    const refreshRingOffset =
-        refreshRingCircumference * (1 - refreshProgress);
-
     return (
         <div className="space-y-2.5 sm:space-y-5">
             <section
@@ -1250,129 +935,12 @@ function PaymentSuccessView({
                     </div>
 
                     {isUniFiPayment && receiptId ? (
-                        <div
-                            className="mt-3 flex items-start gap-3 rounded-lg border border-blue-200 bg-blue-50/70 p-2.5 sm:mt-4 sm:rounded-xl sm:p-3"
-                        >
-                            <button
-                                type="button"
-                                className="group relative inline-flex h-12 w-12 flex-none cursor-pointer items-center justify-center rounded-full text-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-wait disabled:opacity-60"
-                                onClick={onRefreshReceiptStatus}
-                                disabled={isReceiptStatusChecking}
-                                aria-label="Refresh payment finality now"
-                                title={
-                                    isReceiptAutoRefreshActive
-                                        ? `Refresh now · next automatic check in ${formatCountdown(receiptAutoRefreshSecondsLeft)}`
-                                        : "Refresh payment finality now"
-                                }
-                            >
-                                <span
-                                    className="absolute inset-1 rounded-full border border-blue-100 bg-white shadow-sm transition group-hover:bg-blue-50"
-                                    aria-hidden="true"
-                                />
-                                <i
-                                    className={`bi bi-arrow-clockwise relative z-10 text-base ${isReceiptStatusChecking ? "animate-spin" : ""}`}
-                                    aria-hidden="true"
-                                ></i>
-                                <svg
-                                    className="pointer-events-none absolute inset-0 h-full w-full -rotate-90"
-                                    viewBox="0 0 48 48"
-                                    aria-hidden="true"
-                                >
-                                    <defs>
-                                        <linearGradient
-                                            id="unifi-refresh-ring-gradient"
-                                            x1="0"
-                                            y1="0"
-                                            x2="48"
-                                            y2="48"
-                                            gradientUnits="userSpaceOnUse"
-                                        >
-                                            <stop stopColor="#2563EB" />
-                                            <stop
-                                                offset="1"
-                                                stopColor="#7C3AED"
-                                            />
-                                        </linearGradient>
-                                    </defs>
-                                    <circle
-                                        cx="24"
-                                        cy="24"
-                                        r={refreshRingRadius}
-                                        fill="none"
-                                        stroke="#BFDBFE"
-                                        strokeWidth="3"
-                                    />
-                                    {isReceiptAutoRefreshActive ? (
-                                        <circle
-                                            cx="24"
-                                            cy="24"
-                                            r={refreshRingRadius}
-                                            fill="none"
-                                            stroke="url(#unifi-refresh-ring-gradient)"
-                                            strokeWidth="3"
-                                            strokeLinecap="round"
-                                            strokeDasharray={
-                                                refreshRingCircumference
-                                            }
-                                            strokeDashoffset={refreshRingOffset}
-                                            style={{
-                                                transition:
-                                                    "stroke-dashoffset 1s linear",
-                                            }}
-                                        />
-                                    ) : null}
-                                </svg>
-                            </button>
-                            <div className="min-w-0 text-[11px] text-blue-950 sm:text-sm">
-                                <div
-                                    className="font-extrabold"
-                                    role="status"
-                                    aria-live="polite"
-                                >
-                                    {isReceiptStatusChecking
-                                        ? "Refreshing payment status…"
-                                        : receiptStatusLabel}
-                                </div>
-                                <div className="mt-0.5 text-blue-800">
-                                    Status checks run automatically every 15
-                                    minutes. Use the refresh button for an
-                                    immediate check.
-                                </div>
-                                {isReceiptAutoRefreshActive ? (
-                                    <div
-                                        className="mt-1 font-bold tabular-nums text-blue-700"
-                                        aria-hidden="true"
-                                    >
-                                        Next automatic check in{" "}
-                                        {formatCountdown(
-                                            receiptAutoRefreshSecondsLeft,
-                                        )}
-                                    </div>
-                                ) : null}
-                                {receiptStatusCheckedAt ? (
-                                    <div className="mt-1 text-[10px] font-semibold text-blue-700 sm:text-xs">
-                                        Last checked at{" "}
-                                        {receiptStatusCheckedAt.toLocaleTimeString(
-                                            [],
-                                            {
-                                                hour: "2-digit",
-                                                minute: "2-digit",
-                                            },
-                                        )}
-                                    </div>
-                                ) : null}
-                                {receiptStatusError ? (
-                                    <div
-                                        className="mt-1 font-semibold text-red-700"
-                                        role="alert"
-                                    >
-                                        {receiptStatusError} Your order remains
-                                        unconfirmed until UniFi reports
-                                        finality.
-                                    </div>
-                                ) : null}
-                            </div>
-                        </div>
+                        <UniFiReceiptStatusCard
+                            receiptId={receiptId}
+                            proxyBaseUrl="/api/unifi"
+                            onStatusChange={onReceiptStatusChange}
+                            errorHelpText="Your order remains unconfirmed until UniFi reports finality."
+                        />
                     ) : null}
 
                     <div className="mt-3 flex flex-1 flex-col justify-end border-t border-slate-200 pt-3 sm:mt-5 sm:pt-5">
@@ -1388,7 +956,7 @@ function PaymentSuccessView({
                                 <UniFiReceiptLink
                                     receiptId={receiptId}
                                     checkoutBaseUrl={unifiWebAppBaseUrl}
-                                    className="!mt-2 !inline-flex !items-center !gap-1.5 !text-xs !font-extrabold !text-indigo-700 hover:!text-indigo-800 sm:!mt-3 sm:!gap-2 sm:!text-sm [&>span:last-child]:hidden"
+                                    className="mt-2! inline-flex! items-center! gap-1.5! text-xs! font-extrabold! text-indigo-700! hover:text-indigo-800! sm:mt-3! sm:gap-2! sm:text-sm! [&>span:last-child]:hidden"
                                 >
                                     View UniFi receipt
                                     <i
