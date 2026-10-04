@@ -131,6 +131,8 @@ export default function App() {
     const [merchantWalletAddress, setMerchantWalletAddress] = useState<
         string | null
     >(null);
+    const [paymentStatusPollIntervalMs, setPaymentStatusPollIntervalMs] =
+        useState<number | null>(null);
     const [unifiConfigError, setUnifiConfigError] = useState<string | null>(
         null,
     );
@@ -138,6 +140,7 @@ export default function App() {
         proxyBaseUrl: "/api/unifi",
         checkoutBaseUrl: unifiWebAppBaseUrl,
         expirySeconds: UNIFI_PAYMENT_EXPIRY_SECONDS,
+        statusPollIntervalMs: paymentStatusPollIntervalMs,
         closeOnReceipt: true,
         closeOnExpire: true,
         onReceiptDetected: (nextReceiptId, session) => {
@@ -191,6 +194,7 @@ export default function App() {
                     error?: unknown;
                     MERCHANT_WALLET_ADDRESS?: unknown;
                     UNIFI_WEB_APP_BASE_URL?: unknown;
+                    PAYMENT_STATUS_POLL_INTERVAL?: unknown;
                 };
                 if (!response.ok) {
                     throw new Error(
@@ -219,6 +223,22 @@ export default function App() {
                 if (typeof config.UNIFI_WEB_APP_BASE_URL === "string") {
                     const baseUrl = config.UNIFI_WEB_APP_BASE_URL.trim();
                     if (baseUrl) setUnifiWebAppBaseUrl(baseUrl);
+                }
+
+                if (config.PAYMENT_STATUS_POLL_INTERVAL === undefined) {
+                    setPaymentStatusPollIntervalMs(null);
+                } else if (
+                    typeof config.PAYMENT_STATUS_POLL_INTERVAL === "number" &&
+                    Number.isSafeInteger(config.PAYMENT_STATUS_POLL_INTERVAL) &&
+                    config.PAYMENT_STATUS_POLL_INTERVAL > 0
+                ) {
+                    setPaymentStatusPollIntervalMs(
+                        config.PAYMENT_STATUS_POLL_INTERVAL * 1000,
+                    );
+                } else {
+                    throw new Error(
+                        "Server configuration has an invalid PAYMENT_STATUS_POLL_INTERVAL.",
+                    );
                 }
             } catch (error) {
                 setUnifiConfigError(
@@ -616,6 +636,10 @@ export default function App() {
                 statusText={unifiPayment.statusText}
                 payUrl={unifiPayment.session?.payUrl}
                 checking={unifiPayment.checking}
+                statusPollIntervalMs={paymentStatusPollIntervalMs}
+                autoCheckSecondsLeft={unifiPayment.autoCheckSecondsLeft}
+                autoCheckActive={unifiPayment.autoCheckActive}
+                lastCheckedAt={unifiPayment.lastCheckedAt}
                 onCheckStatus={unifiPayment.checkStatus}
                 onClose={closeUnifiDialog}
             />

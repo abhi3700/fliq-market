@@ -47,8 +47,18 @@ UNIFI_API_KEY=
 MERCHANT_WALLET_ADDRESS=
 ```
 
+Automatic payment-status checks are optional:
+
+```makefile
+# unset / empty = manual check only
+PAYMENT_STATUS_POLL_INTERVAL=
+```
+
 - Store `UNIFI_API_KEY` as an encrypted server or Cloudflare secret.
 - Store `MERCHANT_WALLET_ADDRESS` as a Cloudflare project variable. It is public configuration returned by `/api/config` and passed to the widget as the payment recipient.
+- `PAYMENT_STATUS_POLL_INTERVAL` is optional public configuration in seconds. Leave it unset or
+  empty for manual checks only, or use a positive whole number such as `30`, `60`, or `120` to show
+  the compact automatic-check countdown and poll at that cadence.
 - Never expose the API key through `VITE_*`, `NEXT_PUBLIC_*`, or another client-visible variable.
 
 `UNIFI_API_BASE_URL` and `UNIFI_WEB_APP_BASE_URL` are optional local/admin overrides. Leave both unset in merchant production so the widget uses its built-in production URLs.
@@ -96,6 +106,10 @@ trusted server-side confirmation of `Finalized` pay receipt.
 > progress** for `Processing` and `Confirmed`, and changes to **Order confirmed** only when the
 > receipt reaches `Finalized`. `Failed` and `Reorged` keep the order unconfirmed.
 
+Before a receipt is detected, the waiting sheet checks the session only when the customer asks by
+default. Setting `PAYMENT_STATUS_POLL_INTERVAL` enables automatic checks at that many seconds and
+replaces the large manual button with a compact refresh control, countdown, and last-check time.
+
 The receipt is checked immediately after detection. Non-terminal states are refreshed automatically
 every 15 minutes to conserve API credits, and the customer can use the refresh icon for an
 immediate check at any time. FliQ Market imports this lifecycle and UI from
@@ -118,7 +132,7 @@ background browser task.
 
 ## Deploy to Cloudflare Pages
 
-1. Configure `UNIFI_API_KEY` and `MERCHANT_WALLET_ADDRESS` in the Cloudflare project's Variables and Secrets.
+1. Configure `UNIFI_API_KEY` and `MERCHANT_WALLET_ADDRESS` in the Cloudflare project's Variables and Secrets. Optionally set public `PAYMENT_STATUS_POLL_INTERVAL` in seconds.
 2. Run `./local.sh`, exercise the checkout flow, and stop the preview.
 3. Review and commit `package-lock.json` if `main` resolved to a newer widget commit.
 4. Deploy the tested dependency tree:

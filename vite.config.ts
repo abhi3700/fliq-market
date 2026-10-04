@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { parsePaymentStatusPollIntervalSeconds } from "./runtime-config";
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
@@ -8,6 +9,9 @@ export default defineConfig(({ mode }) => {
   const apiKey = env.UNIFI_API_KEY?.trim();
   const merchantWalletAddress = env.MERCHANT_WALLET_ADDRESS?.trim();
   const webAppBaseUrl = env.UNIFI_WEB_APP_BASE_URL?.trim();
+  const paymentStatusPollInterval = parsePaymentStatusPollIntervalSeconds(
+    env.PAYMENT_STATUS_POLL_INTERVAL,
+  );
 
   return {
     plugins: [
@@ -42,6 +46,7 @@ export default defineConfig(({ mode }) => {
               JSON.stringify({
                 MERCHANT_WALLET_ADDRESS: merchantWalletAddress,
                 UNIFI_WEB_APP_BASE_URL: webAppBaseUrl || undefined,
+                PAYMENT_STATUS_POLL_INTERVAL: paymentStatusPollInterval,
               }),
             );
           });

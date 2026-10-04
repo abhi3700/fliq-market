@@ -1,10 +1,12 @@
 import { createCloudflarePagesFunction } from "../vendor/unifi-pay-widget-server.js";
+import { parsePaymentStatusPollIntervalSeconds } from "../../runtime-config";
 
 type Env = {
   UNIFI_API_KEY: string;
   MERCHANT_WALLET_ADDRESS: string;
   UNIFI_API_BASE_URL?: string;
   UNIFI_WEB_APP_BASE_URL?: string;
+  PAYMENT_STATUS_POLL_INTERVAL?: string;
 };
 
 type PagesContext = {
@@ -48,10 +50,34 @@ export function onRequest(context: PagesContext): Promise<Response> | Response {
     }
 
     const webAppBaseUrl = context.env.UNIFI_WEB_APP_BASE_URL?.trim();
+    let paymentStatusPollInterval: number | undefined;
+    try {
+      paymentStatusPollInterval = parsePaymentStatusPollIntervalSeconds(
+        context.env.PAYMENT_STATUS_POLL_INTERVAL,
+      );
+    } catch (error) {
+      return new Response(
+        JSON.stringify({
+          error:
+            error instanceof Error
+              ? error.message
+              : "Invalid PAYMENT_STATUS_POLL_INTERVAL.",
+        }),
+        {
+          status: 500,
+          headers: {
+            "Content-Type": "application/json; charset=utf-8",
+            "Cache-Control": "no-store",
+          },
+        },
+      );
+    }
+
     return new Response(
       JSON.stringify({
         MERCHANT_WALLET_ADDRESS: merchantWalletAddress,
         UNIFI_WEB_APP_BASE_URL: webAppBaseUrl || undefined,
+        PAYMENT_STATUS_POLL_INTERVAL: paymentStatusPollInterval,
       }),
       {
         headers: {
