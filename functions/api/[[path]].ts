@@ -18,6 +18,14 @@ const handleUniFiProxy = createCloudflarePagesFunction<Env>({
   apiPrefix: "/api/unifi",
 });
 
+function versionedApiBaseUrl(value: string | undefined): string {
+  const baseUrl = (value?.trim() || "https://api.payunifi.com").replace(
+    /\/+$/,
+    "",
+  );
+  return baseUrl.endsWith("/v1") ? baseUrl : `${baseUrl}/v1`;
+}
+
 export function onRequest(context: PagesContext): Promise<Response> | Response {
   const url = new URL(context.request.url);
 
@@ -88,5 +96,13 @@ export function onRequest(context: PagesContext): Promise<Response> | Response {
     );
   }
 
-  return handleUniFiProxy(context);
+  return handleUniFiProxy({
+    ...context,
+    env: {
+      ...context.env,
+      // The pinned widget package still has pre-v1 relative handler paths. Supplying the
+      // versioned base keeps deployed requests on the current UniFi API contract.
+      UNIFI_API_BASE_URL: versionedApiBaseUrl(context.env.UNIFI_API_BASE_URL),
+    },
+  });
 }

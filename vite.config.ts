@@ -6,6 +6,11 @@ import { parsePaymentStatusPollIntervalSeconds } from "./runtime-config";
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   const apiBaseUrl = env.UNIFI_API_BASE_URL?.trim() || "http://0.0.0.0:3333";
+  const parsedApiBaseUrl = new URL(apiBaseUrl);
+  const apiBasePath = parsedApiBaseUrl.pathname.replace(/\/+$/, "");
+  const apiV1Path = apiBasePath.endsWith("/v1")
+    ? apiBasePath
+    : `${apiBasePath}/v1`;
   const apiKey = env.UNIFI_API_KEY?.trim();
   const merchantWalletAddress = env.MERCHANT_WALLET_ADDRESS?.trim();
   const webAppBaseUrl = env.UNIFI_WEB_APP_BASE_URL?.trim();
@@ -68,11 +73,12 @@ export default defineConfig(({ mode }) => {
     server: {
       proxy: {
         "/api/unifi": {
-          target: apiBaseUrl,
+          target: parsedApiBaseUrl.origin,
           changeOrigin: true,
           secure: false,
           headers: apiKey ? { Authorization: `Bearer ${apiKey}` } : undefined,
-          rewrite: (path) => path.replace(/^\/api\/unifi/, ""),
+          rewrite: (path) =>
+            `${apiV1Path}${path.replace(/^\/api\/unifi/, "")}`,
         },
       },
     },
