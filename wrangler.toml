@@ -1,3 +1,11 @@
 name = "fliqm"
 pages_build_output_dir= "dist/"
 compatibility_date = "2026-09-11"
+
+[env.production.vars]
+UNIFI_API_BASE_URL = "https://api.payunifi.com"
+UNIFI_WEB_APP_BASE_URL = "https://payunifi.com"
+
+[env.preview.vars]
+UNIFI_API_BASE_URL = "https://api.payunifi.com"
+UNIFI_WEB_APP_BASE_URL = "https://dev.payunifi.com"
