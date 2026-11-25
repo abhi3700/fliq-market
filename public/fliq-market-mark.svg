@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>FliQ Market Bag</title>
+  <rect width="64" height="64" rx="15" fill="#2944CA"/>
+  <path d="M23 24v-3a9 9 0 0 1 18 0v3" fill="none" stroke="#BFCBFF" stroke-width="6"/>
+  <path fill="#FFF" fill-rule="evenodd" d="M18.5 23h27a4 4 0 0 1 4 3.6L52 47.4a5 5 0 0 1-5 5.6H17a5 5 0 0 1-5-5.6l2.5-20.8a4 4 0 0 1 4-3.6ZM25 29.5v17h5.5V41H37v-4.5h-6.5v-2h9v-5Z"/>
+</svg>

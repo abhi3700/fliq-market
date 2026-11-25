@@ -491,15 +491,15 @@ export default function App() {
                     }`}
                 >
                     <div className="flex items-center gap-2 sm:gap-3">
-                        <div
-                            className={`flex items-center justify-center rounded-lg bg-slate-900 font-extrabold text-white sm:h-10 sm:w-10 sm:rounded-xl sm:text-sm ${
-                                isConfirmation
-                                    ? "h-7 w-7 text-[11px]"
-                                    : "h-8 w-8 text-xs"
+                        <img
+                            src="/fliq-market-mark.svg"
+                            alt=""
+                            width={40}
+                            height={40}
+                            className={`shrink-0 sm:size-10 ${
+                                isConfirmation ? "size-7" : "size-8"
                             }`}
-                        >
-                            M
-                        </div>
+                        />
                         <div>
                             <div
                                 className={`font-extrabold tracking-tight sm:text-base ${
